@@ -1,3 +1,26 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	
+}
+
+html {
+	overflow-y: scroll;
+	font-size: 14px;
+}
+
+
+.viewport {
+	position:absolute;
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	height:100%;
+	//background-image: linear-gradient(to bottom right, #222222, #550055);
+}
+
+
 .update {
 	display:none;
 }
@@ -6,3 +29,14 @@
 	display:block;
 }
 
+/*Mobile-portrait style */
+@media only screen and (max-width: 700px),(orientation: portrait){
+	
+
+}
+
+/*Landscape - desktop style*/
+@media only screen and (min-width: 700px) {
+
+	
+}
