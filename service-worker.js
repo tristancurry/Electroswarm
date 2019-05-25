@@ -1,9 +1,12 @@
-let CACHE_NAME = 'electroswarm-cache-001';
+let CACHE_NAME = 'electroswarm-cache-test006';
 let urlsToCache = [
 	'index.html',
 	'manifest.json',
 	'css/styles.css',
-	'scripts/swHandling.js'
+	'scripts/swHandling.js',
+	'scripts/main.js',
+	'scripts/interface.js'
+	
 ];
 
 self.addEventListener('install', function(event) {
