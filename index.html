@@ -22,26 +22,26 @@
 			<div class='controls'>
 				<div class='particles container'>
 					<div class='species-selector'>
-						<button>🔺</button>
-						<button>⚪</button>
-						<button>🔹</button>
-						<button>All</button>
+						<button id='btn_triangle'>🔺</button>
+						<button id='btn_circle'>⚪</button>
+						<button id='btn_diamond'>🔹</button>
+						<button id='btn_all'>All</button>
 					</div>
 					<div class='quantity-selector'>
-						<button>➖</button>
-						<button id='btn_spawnQuantity' value='1' onclick='changeSpawnQuantity()'>🔟</button>
-						<button>➕</button>
+						<button id='btn_minus'>➖</button>
+						<button id='btn_spawnQuantity' value='1'>🔟</button>
+						<button id='btn_plus'>➕</button>
 					</div>
 				</div>
 				
 				<div class='playback container'>
-					<button id='btn_playPause' value='0' onclick='playPause()'>⏸️</button>
-					<button>🚮</button>
+					<button id='btn_playPause' value='0'>⏸️</button>
+					<button id='btn_reset'>🚮</button>
 				</div>
 
 				<div class='physics container'>
 					<button>&#x1F4CC</button>
-					<button>&#x1F517</button>
+					<button id = 'btn_coupling'>&#x1F517</button>
 				</div>
 
 				<div class='options container'>
@@ -52,33 +52,58 @@
 			<div class='update modal'>
 				<div class='modal-content'>update ready!<button id='updateBtn'>UPDATE</button></div>
 			</div>
-			<div class='coupling modal show'>
+			<div class='coupling modal'>
 				
 				<div class='modal-content'>
-					<div class='modal-header'><h2>Coupling</h2></div>
+					<div class='modal-header'><h2>Physical Properties</h2></div>
 						<div class='modal-body'>
-							<div class='coupling-grid'>
-								<button class='coupling-button icon' disabled>🐙</button>
-								<button class='coupling-button icon' disabled>🔺</button>
-								<button class='coupling-button icon' disabled>⚪</button>
-								<button class='coupling-button icon' disabled>🔹</button>
-							
-								<button class='coupling-button icon' disabled>🔺</button>
-								<button class='coupling-button aa' value=0>🐸</button>
-								<button class='coupling-button ab' value=0>🐸</button>
-								<button class='coupling-button ac' value=0>🐸</button>
-							
-								<button class='coupling-button icon' disabled>⚪</button>
-								<button class='coupling-button ab' value=0>🐸</button>
-								<button class='coupling-button bb' value=0>🐸</button>
-								<button class='coupling-button bc' value=0>🐸</button>
-							
-								<button class='coupling-button icon' disabled>🔹</button>
-								<button class='coupling-button ac' value=0>🐸</button>
-								<button class='coupling-button bc' value=0>🐸</button>
-								<button class='coupling-button cc' value=0>🐸</button>
+							<div class='modal-section'>
+								<h3>Charge Coupling</h3>
+								<div class='coupling-grid'>
+									<button class='icon' disabled>🐙</button>
+									<button class='icon' disabled>🔺</button>
+									<button class='icon' disabled>⚪</button>
+									<button class='icon' disabled>🔹</button>
+								
+									<button class='icon' disabled>🔺</button>
+									<button class='aa' value=0>🐸</button>
+									<button class='ab' value=0>🐸</button>
+									<button class='ac' value=0>🐸</button>
+								
+									<button class='icon' disabled>⚪</button>
+									<button class='ab' value=0>🐸</button>
+									<button class='bb' value=0>🐸</button>
+									<button class='bc' value=0>🐸</button>
+								
+									<button class='icon' disabled>🔹</button>
+									<button class='ac' value=0>🐸</button>
+									<button class='bc' value=0>🐸</button>
+									<button class='cc' value=0>🐸</button>
+								</div>
 							</div>
-							<button>OK</button>
+							<div class='modal-section'>
+								<h3>Mass and Charge</h3>
+								<div class='properties-grid'>
+									<button class='icon' disabled>🐙</button>
+									<div>mass</div>
+									<div>charge</div>
+								
+									<button class='icon' disabled>🔺</button>
+									<button class='mass' value=0>🐸</button>
+									<button class='charge' value=0>🐸</button>
+
+								
+									<button class='icon' disabled>⚪</button>
+									<button class='mass' value=0>🐸</button>
+									<button class='charge' value=0>🐸</button>
+
+								
+									<button class='icon' disabled>🔹</button>
+									<button class='mass' value=0>🐸</button>
+									<button class='charge' value=0>🐸</button>
+								</div>
+							</div>
+							<button onclick='toggleDisplay(this.parentNode.parentNode.parentNode)'>OK</button>
 						</div>
 					</div>
 				</div>

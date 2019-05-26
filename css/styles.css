@@ -96,15 +96,21 @@ canvas {
 
 .controls button {
 	vertical-align:top;
-	min-width:14vw;
-	font-size: 10vw;
-	height:14vw;
+	width:12.5vw;
+	font-size: 8.7vw;
+	height:12.5vw;
+	max-width:50px;
+	max-height:50px;
 }
 
-.coupling-button {
+.coupling-grid button, .properties-grid button {
 	width: 40px;
 	height: 40px;
-	font-size:30px;	
+	font-size:30px;
+}
+
+.properties-grid div {
+	font-size: 20px;
 }
 
 .icon {
@@ -112,13 +118,20 @@ canvas {
 	cursor: default;
 }
 
-.coupling-grid {
+.coupling-grid, .properties-grid {
 	display:grid;
-	grid-template-columns: repeat(4, 1fr);
 	grid-column-gap: 10px;
 	grid-row-gap: 10px;
+	justify-items: center;
 }
 
+.coupling-grid {
+	grid-template-columns: repeat(4, 1fr);
+}
+
+.properties-grid {
+	grid-template-columns: repeat(3, 1fr);
+}
 
 .update {
 	display:none;
@@ -152,6 +165,10 @@ canvas {
 	padding: 15px;
 	border: 2px solid white;
 	color: white;
+	user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
 	animation-name: animatetop;
 	animation-duration: 0.4s;
 	-webkit-animation-name: animatetop;
@@ -179,6 +196,20 @@ canvas {
 .modal-body {
 	text-align: center;
 	font-size: 1.1rem;
+	display: flex;
+	flex-direction: column;
+}
+
+.modal-section {
+	padding:10px;
+	text-align:center;
+	margin-bottom: 20px;
+	
+}
+
+.modal h3 {
+	text-align: left;
+	padding-bottom:10px;
 }
 
 .modal p {
@@ -211,8 +242,44 @@ canvas {
 
 }
 
-/*Landscape - desktop style*/
-@media only screen and (min-width: 700px) {
+/*Landscape - tablet style*/
+@media only screen and (min-width: 420px) {
+	.viewport {
+		flex-direction:row;
+	}
+	
+	.canvas-container {
+		flex-grow:2;
+		height:auto;
+	}
+	
+	.controls {
+		width: 70%;
+	}
+
+	.controls button{
+		font-size: 30px;
+	}
+
+	.modal-content {
+		max-width:800px;
+	}
+
+	.modal-body {
+		text-align: center;
+		font-size: 1.1rem;
+		display: flex;
+		flex-direction: row;
+	}
+
+	.modal-section {
+		margin-left:20px;
+	}
+
+	.modal h3 {
+		text-align:center;
+	}
 
 	
 }
+
