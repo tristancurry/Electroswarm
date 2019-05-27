@@ -238,12 +238,16 @@ canvas {
 
 /*Mobile-portrait style */
 @media only screen and (max-width: 700px),(orientation: portrait){
-	
+		.controls button{
+		font-size: 30px;
+	}
 
 }
 
-/*Landscape - tablet style*/
-@media only screen and (min-width: 420px) {
+
+
+/*Landscape - tablet/phone style*/
+@media only screen and (min-width: 420px) and (orientation:landscape){
 	.viewport {
 		flex-direction:row;
 	}
@@ -253,12 +257,20 @@ canvas {
 		height:auto;
 	}
 	
+	canvas {
+		//height:100%
+	}
+	
 	.controls {
 		width: 70%;
 	}
 
 	.controls button{
 		font-size: 30px;
+	}
+	
+	.controls.container {
+		flex-grow:0;
 	}
 
 	.modal-content {
