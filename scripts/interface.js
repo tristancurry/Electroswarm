@@ -14,8 +14,11 @@ const debugBox = document.getElementsByClassName('debug')[0];
 
 function initialiseButtonStates(){
 	//setButtonState(btn, icon_array, value);
-	setButtonState(document.getElementById('btn_spawnQuantity'), SPAWN_ICONS, 1);
+	setButtonState(document.getElementById('btn_spawnQuantity'), SPAWN_ICONS, 0);
 	setButtonState(document.getElementById('btn_playPause'), PLAY_ICONS, 0);
+	
+	switchParticleType(document.getElementById('btn_b'));
+	
 }
 
 initialiseButtonStates();
@@ -44,9 +47,7 @@ controls.addEventListener('click', function(event){
 	let t = event.target;
 	if(t.tagName == 'BUTTON'){
 		switch(t.id){
-			case 'btn_spawnQuantity':
-				changeSpawnQuantity();
-				break;
+
 			
 			case 'btn_playPause':
 				playPause();
@@ -59,7 +60,7 @@ controls.addEventListener('click', function(event){
 			case 'btn_a':
 				//if this one isn't already selected, remove selected class from all others, add to this one
 				//if already selected, don't do anything. Same for other buttons in this group
-				//also, feed the selected particle specie to the particle creation mechanisms
+				//also, feed the selected particle species to the particle creation mechanisms
 				switchParticleType(t);
 				break;
 				
@@ -73,6 +74,14 @@ controls.addEventListener('click', function(event){
 				
 			case 'btn_all':
 				switchParticleType(t);
+				break;
+				
+			case 'btn_spawnQuantity':
+				changeSpawnQuantity();
+				break;
+				
+			case 'btn_plus':
+				createParticles(spawnQuantity);
 				break;
 											
 			default:
@@ -105,10 +114,11 @@ function handlePropertiesClicks(event){
 
 
 function changeSpawnQuantity(){
-	//TODO:change number of particles to be spawned/despawned
-	
 	//change appearance of button
 	cycleIcon(document.getElementById('btn_spawnQuantity'), SPAWN_ICONS);
+	
+	//set quantity to be spawned
+	spawnQuantity = Math.pow(10,parseInt(document.getElementById('btn_spawnQuantity').value));
 	
 }
 
@@ -142,6 +152,7 @@ function switchParticleType(elm){
 		let b = buttons[i];
 		if(b == elm){
 			if(!b.classList.contains('selected')){b.classList.toggle('selected');}
+			nextSelectedSpecies = elm.value;
 		} else {
 			if(b.classList.contains('selected')){b.classList.toggle('selected');}
 		}

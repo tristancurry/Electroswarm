@@ -78,7 +78,7 @@ canvas {
 
 
 .particles {
-	background-color: pink;
+	background-color: blue;
 }
 
 .playback {
@@ -145,7 +145,7 @@ canvas {
 }
 
 #btn_b {
-	background-color: rgb(255,180,100);
+	background-color: rgb(200,130,50);
 }
 
 
@@ -158,11 +158,11 @@ canvas {
 }
 
 #btn_a.selected {
-	background-color: rgb(255,70,255);
+	background-color: rgb(255,200,255);
 }
 
 #btn_b.selected {
-	background-color: rgb(255,255,200);
+	background-color: rgb(255,200,120);
 }
 
 #btn_c.selected {
