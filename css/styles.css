@@ -244,7 +244,8 @@ canvas {
 
 }
 
-
+/* may need some specific queries targeting iOS devices, due to buggy vh support.
+In this case, target SPECIFIC screen dimensions */
 
 /*Landscape - tablet/phone style*/
 @media only screen and (min-width: 420px) and (orientation:landscape){
@@ -255,12 +256,11 @@ canvas {
 	.canvas-container {
 		flex-grow:2;
 		height:auto;
+		max-height:100%;
+		max-width:100vh;
 	}
 	
-	canvas {
-		//height:100%
-	}
-	
+
 	.controls {
 		width: 70%;
 	}
