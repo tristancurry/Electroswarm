@@ -37,8 +37,6 @@ button {
 	max-height:800px;
 }
 
-
-
 canvas {
 	position: absolute;
 	width:100%;
@@ -46,6 +44,15 @@ canvas {
 	max-width:800px;
 }
 
+.debug{
+	position:absolute;
+	top:0;
+	right:0;
+	width:200px;
+	height:100px;
+	z-index:2;
+	color: #00FF00;
+}
 
 .controls {
 	position:relative;
@@ -131,6 +138,39 @@ canvas {
 
 .properties-grid {
 	grid-template-columns: repeat(3, 1fr);
+}
+
+#btn_a {
+	background-color: rgb(180,0,180);
+}
+
+#btn_b {
+	background-color: rgb(255,180,100);
+}
+
+
+#btn_c {
+	background-color: rgb(0,180,180);
+}
+
+#btn_all {
+	background-image: linear-gradient(to bottom right, rgb(180,0,180), rgb(255,180,100),rgb(0,180,180));
+}
+
+#btn_a.selected {
+	background-color: rgb(255,70,255);
+}
+
+#btn_b.selected {
+	background-color: rgb(255,255,200);
+}
+
+#btn_c.selected {
+	background-color: rgb(100,255,255);
+}
+
+#btn_all.selected {
+	background-image: linear-gradient(to bottom right, rgb(255,70,255), rgb(255,255,200),rgb(100,255,255));
 }
 
 .update {
@@ -231,6 +271,10 @@ canvas {
 }
 
 /* temporary classes (controlled through javascript) */
+
+/* it'd be nice to do some cool stuff to make these look like illuminated switches*/
+/*but that's a job for another time */
+
 
 .show {
 	display:block;

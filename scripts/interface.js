@@ -8,7 +8,7 @@ const SPAWN_ICONS = ['1','🔟','💯'];
 const PLAY_ICONS = ['⏸️','▶️'];
 const COUPLING_ICONS = ['🐸','🐵','🐔','🐨','🐲'];
 
-
+const debugBox = document.getElementsByClassName('debug')[0];
 
 //Initialise button states (so they don't need to be specified in HTML
 
@@ -55,7 +55,26 @@ controls.addEventListener('click', function(event){
 			case 'btn_coupling':
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
 				break;
-			
+				
+			case 'btn_a':
+				//if this one isn't already selected, remove selected class from all others, add to this one
+				//if already selected, don't do anything. Same for other buttons in this group
+				//also, feed the selected particle specie to the particle creation mechanisms
+				switchParticleType(t);
+				break;
+				
+			case 'btn_b':
+				switchParticleType(t);
+				break;
+				
+			case 'btn_c':
+				switchParticleType(t);
+				break;
+				
+			case 'btn_all':
+				switchParticleType(t);
+				break;
+											
 			default:
 				console.log(t.id + ' not wired yet!');
 				break;
@@ -115,6 +134,19 @@ function setButtonState(btn, icon_array, value){
 
 function toggleDisplay(elm){
 	elm.classList.toggle('show');
+}
+
+function switchParticleType(elm){
+	let buttons = document.getElementsByClassName('species-selector')[0].getElementsByTagName('BUTTON');
+	for(let i = 0, l = buttons.length; i < l; i++){
+		let b = buttons[i];
+		if(b == elm){
+			if(!b.classList.contains('selected')){b.classList.toggle('selected');}
+		} else {
+			if(b.classList.contains('selected')){b.classList.toggle('selected');}
+		}
+	}
+	
 }
 
 //TODO - function to 'apply' state of coupling array (store 'old' state)
