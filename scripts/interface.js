@@ -86,6 +86,10 @@ controls.addEventListener('click', function(event){
 				
 			case 'btn_plus':
 				createParticles(spawnQuantity, particles[selectedSpecies]);
+				break;			
+				
+			case 'btn_minus':
+				killParticles(spawnQuantity, selectedSpecies);
 				break;
 											
 			default:
@@ -127,8 +131,8 @@ function changeSpawnQuantity(){
 }
 
 function playPause(){
-	//TODO: suspend animation
-	
+	//suspend animation
+	paused = !paused;
 	//change appearance of button
 	cycleIcon(document.getElementById('btn_playPause'), PLAY_ICONS);	
 }
