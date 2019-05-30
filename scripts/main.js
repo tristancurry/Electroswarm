@@ -3,7 +3,7 @@
 
 //globals
 
-const PARTICLE_SIZE = 5; //default particle size in pixels
+const PARTICLE_SIZE = 8; //default particle size in pixels
 const TRI_HEIGHT_FACTOR = Math.sqrt(3)/2;
 const SQU_SIZE_FACTOR = 	Math.sqrt(0.5);
 const COLOUR_A = 'rgb(255,0,255)';
@@ -14,11 +14,12 @@ let nextSelectedSpecies = 'b';
 let selectedSpecies = '';
 
 let spawnQuantity = 1;
+let paused = false;
 
 //establish canvas contexts and variables
 const canvas0 = document.getElementById('canvas0');
 const ctx0 = canvas0.getContext('2d');
-
+//ctx0.globalCompositeOperation = 'screen';
 
 const height = canvas0.height;
 const width = canvas0.width;
@@ -78,11 +79,17 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 			this.render = this.render_b;
 			break;
 		}	
+		
+		//this.render = this.render_d;
     return this;
 };
 
 
 function createParticle(){
+	
+	//TODO: make it so that this takes a particle list as an argument. This will allow maintenance of separate particle lists for each type of particle.
+	//note - this will be necessary/convenient for the 'triple BHA' implementation. 
+	
 	let p = new Particle(selectedSpecies, canvas0.width/2 , canvas0.height/2, 5*Math.random() - 2.5, 5*Math.random() - 2.5);
 	
 	if(deadParticles){
@@ -92,7 +99,7 @@ function createParticle(){
 	for(let i = 0, l = particles.length; i < l; i++){
 		let thisParticle = particles[i];
 		if(thisParticle.dead){
-			thisParticle = p;
+			particles[i] = p;
 			found = true;
 			break;
 		}
@@ -107,8 +114,15 @@ function createParticle(){
 }
 
 function createParticles(n){
+	//TODO: make it so that this takes a particle list as an argument. This will allow maintenance of separate particle lists for each type of particle. 
 	for(let i = 0; i < n; i++){
 		createParticle();
+	}
+}
+
+function killAllParticles(){
+	for(let i = 0, l = particles.length; i < l; i++){
+		particles[i].dead = true;
 	}
 }
 
@@ -117,6 +131,8 @@ function createParticles(n){
 
 
 Particle.prototype = {
+	//TODO: create three prototypes from this one, one for each type of particle
+	//this will allow for making changes to the properties of entire classes of particles
 	mass: 1, //reset according to particle type and settings in 'physical properties'
 	charge: 1, //reset according to particle type and settings in 'physical properties'
  	size: PARTICLE_SIZE,  //pixel dimensions of particle
@@ -168,6 +184,19 @@ Particle.prototype = {
 		ctx.restore();
 	},
 	
+	render_d: function(ctx) {//most basic shape
+		ctx.save();
+        	ctx.fillStyle= '#FFFFFF';
+		ctx.strokeStyle = '#FFFFFF';
+		ctx.lineWidth = 3;
+		ctx.translate(this.pos.x, this.pos.y);
+		//ctx.rotate(2*Math.PI*(this.ang + 45)/360);
+		ctx.beginPath();
+		ctx.rect(-0.5*this.size, -0.5*this.size, this.size, this.size);
+		ctx.fill();
+		//ctx.stroke();
+		ctx.restore();
+	},
 	
 	
 
@@ -203,32 +232,37 @@ let n = 0;
 drawWorld();
 function drawWorld(){
 	selectedSpecies = nextSelectedSpecies;
-	ctx0.clearRect(0,0,width,height);
 	
+	if(!paused){
 	
-	for(let i = 0, l = particles.length; i<l; i++){
-		if(!particles[i].dead){
-			particles[i].update();
-			particles[i].vel.y += 0.05;
-		} else {
-			deadParticles = true;
+		for(let i = 0, l = particles.length; i<l; i++){
+			if(!particles[i].dead){
+				particles[i].update();
+				particles[i].vel.y += 0.05;
+			} else {
+				deadParticles = true;
+			}
 		}
 	}
+	
+	ctx0.clearRect(0,0,width,height);
 	
 	for(let i = 0, l = particles.length; i<l; i++){
 		if(!particles[i].dead){
 			particles[i].render(ctx0);
 		}
 	}
-	
+
 	
 	let thisLoop = new Date();
-	n = (n + 1)%60;
+	n = (n + 1)%30;
 	if(n == 0){
+		constrain(thisLoop - lastLoop,1,1000000);
 		let fps = Math.round(1000/(thisLoop - lastLoop));
 		debugBox.innerHTML = 'FPS: ' + fps +'<br>N: '+ particles.length;
 	}
 	lastLoop = thisLoop;
 	requestAnimationFrame(drawWorld);
+	
 
 }

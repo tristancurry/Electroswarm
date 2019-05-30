@@ -53,6 +53,10 @@ controls.addEventListener('click', function(event){
 				playPause();
 				break;
 				
+			case 'btn_reset':
+				killAllParticles();
+				break;
+				
 			case 'btn_coupling':
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
 				break;
@@ -83,6 +87,8 @@ controls.addEventListener('click', function(event){
 			case 'btn_plus':
 				createParticles(spawnQuantity);
 				break;
+				
+			
 											
 			default:
 				console.log(t.id + ' not wired yet!');
@@ -123,8 +129,11 @@ function changeSpawnQuantity(){
 }
 
 function playPause(){
-	//TODO: suspend animation
-	
+	//suspend animation
+	if(paused){
+		requestAnimationFrame(drawWorld);
+	} 
+	paused = !paused;
 	//change appearance of button
 	cycleIcon(document.getElementById('btn_playPause'), PLAY_ICONS);	
 }
