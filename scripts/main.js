@@ -10,11 +10,6 @@ const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,180,100)';
 const COLOUR_C = 'rgb(0,255,255)';
 
-let nextSelectedSpecies = 'b';
-let selectedSpecies = '';
-
-let spawnQuantity = 1;
-
 //establish canvas contexts and variables
 const canvas0 = document.getElementById('canvas0');
 const ctx0 = canvas0.getContext('2d');
@@ -23,12 +18,57 @@ const ctx0 = canvas0.getContext('2d');
 const height = canvas0.height;
 const width = canvas0.width;
 
-/*
-const canvas1 = document.createElement('canvas');
-const ctx1 = canvas1.getContext('2d');
-canvas1.width = canvas0.width;
-canvas1.height = canvas0.height;
-*/	
+
+const canvas_a = document.createElement('canvas');
+const ctx_a = canvas_a.getContext('2d');
+canvas_a.width = canvas0.width;
+canvas_a.height = canvas0.height;
+
+const canvas_b = document.createElement('canvas');
+const ctx_b = canvas_b.getContext('2d');
+canvas_b.width = canvas0.width;
+canvas_b.height = canvas0.height;
+
+const canvas_c = document.createElement('canvas');
+const ctx_c = canvas_c.getContext('2d');
+canvas_c.width = canvas0.width;
+canvas_c.height = canvas0.height;
+
+
+
+let nextSelectedSpecies = 'b';
+let selectedSpecies = 'b';
+
+let spawnQuantity = 1;
+
+let particles = {
+	a: {
+		list: [],
+		dead: false,
+		ctx: ctx_a
+	},
+	b: {
+		list: [],
+		dead: false,
+		ctx: ctx_b
+	},
+	c: {
+		list: [],
+		dead: false,
+		ctx: ctx_c
+	}
+};
+
+
+
+let deadParticles = false;
+let deadParticles_a = false;
+let deadParticles_b = false;
+let deadParticles_c = false;
+
+
+
+	
 	
 	
 //modify a value if it exceeds limits
@@ -82,33 +122,53 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 };
 
 
-function createParticle(){
+function createParticle(particles_obj){
 	let p = new Particle(selectedSpecies, canvas0.width/2 , canvas0.height/2, 5*Math.random() - 2.5, 5*Math.random() - 2.5);
 	
-	if(deadParticles){
+	if(particles_obj.dead){
 	//Make use of 'dead' particles in particle list first, rather than always adding new ones
 	//search particle list for particles that are 'dead'
 	let found = false;
-	for(let i = 0, l = particles.length; i < l; i++){
-		let thisParticle = particles[i];
+	for(let i = 0, l = particles_obj.list.length; i < l; i++){
+		let thisParticle = particles_obj.list[i];
 		if(thisParticle.dead){
-			thisParticle = p;
+			particles_obj.list[i] = p;
 			found = true;
 			break;
 		}
 	}
 	//if there were no holes found in the particle list, push the new one to the list
-	if(!found){particles.push(p);}
+	if(!found){particles_obj.list.push(p);}
 	} else {
-		particles.push(p);
+		particles_obj.list.push(p);
 	}
 	
 	//TODO: generate particles with some scatter from the spawn point, to avoid big accelerations
 }
 
-function createParticles(n){
+function createParticles(n, particles_obj){
 	for(let i = 0; i < n; i++){
-		createParticle();
+			if(!particles_obj){
+				let dice = Math.ceil(6*Math.random());
+				if(dice < 3){
+					particles_obj = particles['a'];
+				} else if (dice < 5) {
+					particles_obj = particles['b'];
+				} else {
+					particles_obj = particles['c'];
+				}
+		
+		}
+		createParticle(particles_obj);
+	}
+}
+
+
+function killAllParticles(){
+	for(let sp in particles){
+		for(let i = 0, l = particles[sp].list.length; i < l; i++){
+			particles[sp].list[i].dead = true;
+		}
 	}
 }
 
@@ -196,37 +256,58 @@ Particle.prototype = {
 
 
 
-let particles = [];
-let deadParticles = 0;
+
 let lastLoop = new Date();
 let n = 0;
+let parts_live = 0;
 drawWorld();
 function drawWorld(){
+	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
 	ctx0.clearRect(0,0,width,height);
 	
-	
-	for(let i = 0, l = particles.length; i<l; i++){
-		if(!particles[i].dead){
-			particles[i].update();
-			particles[i].vel.y += 0.05;
-		} else {
-			deadParticles = true;
+	//cycle through each of the particle lists
+	//and update positions
+	for(let sp in particles){
+		for(let i = 0, l = particles[sp].list.length; i < l; i++){
+			let p = particles[sp].list[i];
+			if(!p.dead){
+				parts_live++;
+				p.update();
+				p.vel.y += 0.05;
+			} else {
+				particles[sp].dead = true;
+			}
+			
 		}
 	}
 	
-	for(let i = 0, l = particles.length; i<l; i++){
-		if(!particles[i].dead){
-			particles[i].render(ctx0);
+	
+	//cycle through each of the particle list
+	//and render the particles
+	for(let sp in particles){
+		particles[sp].ctx.clearRect(0,0,width,height);
+		for(let i = 0, l = particles[sp].list.length; i < l; i++){
+			let p = particles[sp].list[i];
+			if(!p.dead){
+				p.render(particles[sp].ctx);
+			}
 		}
 	}
+
+	
+	ctx0.drawImage(canvas_a, 0, 0);
+	ctx0.drawImage(canvas_b, 0, 0);
+	ctx0.drawImage(canvas_c, 0, 0);
+
+	
 	
 	
 	let thisLoop = new Date();
 	n = (n + 1)%60;
 	if(n == 0){
 		let fps = Math.round(1000/(thisLoop - lastLoop));
-		debugBox.innerHTML = 'FPS: ' + fps +'<br>N: '+ particles.length;
+		debugBox.innerHTML = 'FPS: ' + fps +'<br>N(live): ' + parts_live + '<br>N(all): '+ (particles['a'].list.length + particles['b'].list.length + particles['c'].list.length);
 	}
 	lastLoop = thisLoop;
 	requestAnimationFrame(drawWorld);

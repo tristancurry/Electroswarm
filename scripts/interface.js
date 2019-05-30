@@ -53,6 +53,10 @@ controls.addEventListener('click', function(event){
 				playPause();
 				break;
 				
+			case 'btn_reset':
+				killAllParticles();
+				break;
+				
 			case 'btn_coupling':
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
 				break;
@@ -81,7 +85,7 @@ controls.addEventListener('click', function(event){
 				break;
 				
 			case 'btn_plus':
-				createParticles(spawnQuantity);
+				createParticles(spawnQuantity, particles[selectedSpecies]);
 				break;
 											
 			default:
