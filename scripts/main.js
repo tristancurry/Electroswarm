@@ -220,13 +220,35 @@ function killParticles(n, species){
 			
 			for(sp in particles){
 				if(theLivingN > 0){
-					N[sp] = Math.round(n*theLiving[sp]/theLivingN); //this sometimes causes 1 less particle to be removed...
+					N[sp] = Math.round(n*theLiving[sp]/theLivingN);
 				} else {
 					N[sp] = 0;
 				}
 			}
+			//sometimes, due to rounding, 1 less particle than those available to be killed is killed
+			//fix this by killing one extra particle, if there are particles to be killed
+			let calcN = 0;
+			for(let sp in N){
+				calcN += N[sp];
+			}
 			
-			console.log(N);
+			//this will disadvantage species 'a' just a little, but equity is a little more cumbersome to implement (-:
+			if(calcN < n){
+				for(let sp in N){
+					if(theLiving[sp] > N[sp]){
+						N[sp]++;
+						break;
+					}
+				}
+			} else if(calcN > n){ //the reverse also happens sometimes! In this kill one less than calculated.
+				for(let sp in N){
+					if(theLiving[sp] > 0){
+						N[sp]--;
+						break;
+					}
+				}	
+			}
+			
 			//for each species, kill the calculated number of particles
 			for(let sp in theLiving){
 				if(N[sp] > 0){killParticles(N[sp], sp);}
