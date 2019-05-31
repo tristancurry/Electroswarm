@@ -10,6 +10,13 @@ const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,180,100)';
 const COLOUR_C = 'rgb(0,255,255)';
 
+
+const colours = {
+	a: COLOUR_A,
+	b: COLOUR_B,
+	c: COLOUR_C
+	}
+
 //establish canvas contexts and variables
 const canvas0 = document.getElementById('canvas0');
 const ctx0 = canvas0.getContext('2d');
@@ -40,6 +47,10 @@ let nextSelectedSpecies = 'b';
 let selectedSpecies = 'b';
 
 let spawnQuantity = 1;
+
+let showParticles = true;
+let simpleRender = false;
+
 
 let particles = {
 	a: {
@@ -99,16 +110,20 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	switch(this.species){
 		case 'a':
 			this.render = this.render_a;
+			this.colour = COLOUR_A;
 			break;
 		case 'b':
 			this.render = this.render_b;
+			this.colour = COLOUR_A;
 			break;
 		case 'c':
 			this.render = this.render_c;
+			this.colour = COLOUR_A;
 			break;
 		default:
 			this.species = 'b';
 			this.render = this.render_b;
+			this.colour = COLOUR_B;
 			break;
 		}	
     return this;
@@ -209,11 +224,8 @@ function killParticles(n, species){
 				theLivingN += theLiving[sp];
 			}
 			
-			
-			console.log('the living N = ' + theLivingN);
 			n = constrain(n, 0, theLivingN);
 
-			
 			//calculate the proportion of the living each particle type represents
 			//Multiply this by the number of particles we're killing, then round to get integer values 
 			let N = {}
@@ -290,8 +302,6 @@ Particle.prototype = {
 	
 	render_b: function(ctx) {  //circle particles
 		ctx.save();
-        	ctx.fillStyle = COLOUR_B;
-		ctx.strokeStyle = COLOUR_B;
 		ctx.lineWidth = 3;
 		ctx.translate(this.pos.x, this.pos.y)
 		ctx.beginPath();
@@ -302,8 +312,6 @@ Particle.prototype = {
 		
 	render_c: function(ctx) {//diamond particles
 		ctx.save();
-        	ctx.fillStyle= COLOUR_C;
-		ctx.strokeStyle = COLOUR_C;
 		ctx.lineWidth = 3;
 		ctx.translate(this.pos.x, this.pos.y);
 		ctx.rotate(2*Math.PI*(this.ang + 45)/360);
@@ -316,8 +324,6 @@ Particle.prototype = {
 	
 		render_d: function(ctx) {//most basic shape
 		ctx.save();
-        ctx.fillStyle= '#FFFFFF';
-		ctx.strokeStyle = '#FFFFFF';
 		ctx.lineWidth = 3;
 		ctx.translate(this.pos.x, this.pos.y);
 		ctx.beginPath();
@@ -383,21 +389,25 @@ function drawWorld(){
 	
 	//cycle through each of the particle list
 	//and render the particles
+	if(showParticles){	
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
+		particles[sp].ctx.fillStyle = colours[sp];
 		for(let i = 0, l = particles[sp].list.length; i < l; i++){
 			let p = particles[sp].list[i];
 			if(!p.dead){
-				p.render(particles[sp].ctx);
+				if(simpleRender){
+					p.render_d(particles[sp].ctx);
+				} else {
+					p.render(particles[sp].ctx);
+				}
 			}
 		}
 	}
-
-	
-	ctx0.drawImage(canvas_a, 0, 0);
-	ctx0.drawImage(canvas_b, 0, 0);
-	ctx0.drawImage(canvas_c, 0, 0);
-
+		ctx0.drawImage(canvas_a, 0, 0);
+		ctx0.drawImage(canvas_b, 0, 0);
+		ctx0.drawImage(canvas_c, 0, 0);
+	}
 	
 	
 	

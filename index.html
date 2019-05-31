@@ -48,15 +48,14 @@
 				</div>
 
 				<div class='options container'>
-					<button>&#x1F441</button>
+					<button id='btn_viewoptions'>&#x1F441</button>
 					<button>ℹ️</button>
 				</div>
 			</div>
 			<div class='update modal'>
 				<div class='modal-content'>Update ready! <button id='updateBtn'>yay!</button></div>
 			</div>
-			<div class='coupling modal'>
-				
+			<div class='coupling modal'>		
 				<div class='modal-content'>
 					<div class='modal-header'><h2>Physical Properties</h2></div>
 						<div class='modal-body'>
@@ -107,6 +106,18 @@
 								</div>
 							</div>
 							<button onclick='toggleDisplay(this.parentNode.parentNode.parentNode)'>OK</button>
+						</div>
+					</div>
+				</div>
+			
+				<div class='viewoptions modal'>	
+					<div class='modal-content'>
+						<div class='modal-header'><h2>View Options</h2></div>
+							<div class='modal-body'>
+							<label class='switch'><input type='checkbox' id='chk_simple'><span class='slider round'></span></label><label for='chk_simple'>Simple Rendering</label>
+							<label class='switch'><input type='checkbox' id='chk_showparticles' checked><span class='slider round'></span></label><label for='chk_showParticles'>Show Particles</label>
+								<button onclick='toggleDisplay(this.parentNode.parentNode.parentNode)'>OK</button>
+							</div>
 						</div>
 					</div>
 				</div>

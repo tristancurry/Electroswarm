@@ -32,6 +32,8 @@ couplingGrid.addEventListener('click', function(){handleCouplingClicks(event)});
 let propertiesGrid = document.getElementsByClassName('properties-grid')[0];
 propertiesGrid.addEventListener('click', function(){handlePropertiesClicks(event)});
 
+let viewOptions = document.getElementsByClassName('viewoptions')[0];
+viewOptions.addEventListener('click', function(){handleViewOptionsClicks(event)});
 
 let viewport = document.getElementsByClassName('viewport')[0];
 viewport.addEventListener('click', function(event){
@@ -60,6 +62,14 @@ controls.addEventListener('click', function(event){
 			case 'btn_coupling':
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
 				break;
+				
+				
+			case 'btn_viewoptions':
+				toggleDisplay(document.getElementsByClassName('viewoptions')[0]);
+				break;
+				
+				//TODO - need modals that come up from the bottom or side and just obscure the controls part of the screen
+				//this would allow the effects of the options to be seen while messing with them!
 				
 			case 'btn_a':
 				//if this one isn't already selected, remove selected class from all others, add to this one
@@ -117,6 +127,21 @@ function handlePropertiesClicks(event){
 	let t = event.target;
 	if(t.tagName == 'BUTTON' && !t.disabled){
 		cycleIcon(t, COUPLING_ICONS);
+	}
+}
+
+function handleViewOptionsClicks(event){
+	let t = event.target;
+	if(t.tagName == 'INPUT'){
+		switch(t.id){
+			case 'chk_simple':
+				simpleRender = !simpleRender;
+				break;
+
+			case 'chk_showparticles':
+				showParticles = !showParticles;
+				break;
+		}
 	}
 }
 
