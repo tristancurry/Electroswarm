@@ -1,7 +1,7 @@
 //Interface.js: mainly for switching out the various icons on buttons
 
-//1 - 10 - 100
-//play - pause
+//centre of mass displays: should have an OVERALL CoM, with CoM for each species 'attached' to it
+//visibility of particles, quadtrees etc should be settable for each species
 //coupling strengths (5 levels of attraction/repulsion + 0)	
 
 const SPAWN_ICONS = ['1','🔟','💯'];
