@@ -1,11 +1,12 @@
-let CACHE_NAME = 'electroswarm-cache-test01t';
+let CACHE_NAME = 'electroswarm-cache-test02a';
 let urlsToCache = [
 	'index.html',
 	'manifest.json',
 	'css/styles.css',
 	'scripts/swHandling.js',
 	'scripts/main.js',
-	'scripts/interface.js'
+	'scripts/interface.js',
+	'scripts/physics.js'
 	
 ];
 

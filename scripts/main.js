@@ -5,11 +5,11 @@
 
 const PARTICLE_SIZE = 5; //default particle size in pixels
 const TRI_HEIGHT_FACTOR = Math.sqrt(3)/2;
-const SQU_SIZE_FACTOR = 	Math.sqrt(0.5);
+const SQU_SIZE_FACTOR = 1;
 const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,180,100)';
 const COLOUR_C = 'rgb(0,255,255)';
-
+const WALL_DAMPING = 0.8;
 
 const colours = {
 	a: COLOUR_A,
@@ -49,7 +49,8 @@ let selectedSpecies = 'b';
 let spawnQuantity = 1;
 
 let showParticles = true;
-let simpleRender = false;
+let simpleRender = true;
+let showBounding = true;
 
 
 let particles = {
@@ -95,10 +96,13 @@ function constrain(n, min, max){
 const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.pos = {};
 	this.vel = {};
-    	this.pos.x = pos_x;
-    	this.pos.y = pos_y;
-    	this.vel.x = vel_x;
-    	this.vel.y = vel_y;
+	this.acc = {};
+    this.pos.x = pos_x;
+    this.pos.y = pos_y;
+    this.vel.x = vel_x;
+    this.vel.y = vel_y;
+	this.acc.x = 0;
+	this.acc.y = 0;
 	this.rot = 2*Math.random() - 4;
 	this.ang = 0;
    	this.walls = true;
@@ -114,11 +118,11 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 			break;
 		case 'b':
 			this.render = this.render_b;
-			this.colour = COLOUR_A;
+			this.colour = COLOUR_B;
 			break;
 		case 'c':
 			this.render = this.render_c;
-			this.colour = COLOUR_A;
+			this.colour = COLOUR_C;
 			break;
 		default:
 			this.species = 'b';
@@ -131,7 +135,7 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 
 
 function createParticle(particles_obj){
-	let p = new Particle(particles_obj['species'], canvas0.width/2 , canvas0.height/2, 5*Math.random() - 2.5, 5*Math.random() - 2.5);
+	let p = new Particle(particles_obj.species, canvas0.width/2 + 20*Math.random() - 10 , canvas0.height/2 + 20*Math.random() - 10, 5*Math.random() - 2.5, 5*Math.random() - 2.5);
 	
 	if(particles_obj.dead){
 	//Make use of 'dead' particles in particle list first, rather than always adding new ones
@@ -160,11 +164,11 @@ function createParticles(n, particles_obj){
 		if(!particles_obj){
 			let dice = Math.ceil(6*Math.random());
 				if(dice < 3){
-					p_o = particles['a'];
+					p_o = particles.a;
 				} else if (dice < 5) {
-					p_o = particles['b'];
+					p_o = particles.b;
 				} else {
-					p_o = particles['c'];
+					p_o = particles.c;
 				}
 		
 		} else {
@@ -278,13 +282,14 @@ Particle.prototype = {
 	mass: 1, //reset according to particle type and settings in 'physical properties'
 	charge: 1, //reset according to particle type and settings in 'physical properties'
  	size: PARTICLE_SIZE,  //pixel dimensions of particle
+	type: 'particle',
 	label: "",	
 	colour: "rgb(255,255,255)",
 	interactList: [],
 	
 	render_a: function(ctx) {  //triangle particles
 		ctx.save();
-        	ctx.fillStyle = COLOUR_A;
+        ctx.fillStyle = COLOUR_A;
 		ctx.strokeStyle = COLOUR_A;
 		ctx.lineWidth = 3;
 		let triHeight = Math.round(this.size*TRI_HEIGHT_FACTOR); //find a way to do this only once (when particle is initialised)
@@ -336,8 +341,12 @@ Particle.prototype = {
 
 	
 	update: function(pos, vel) {
-		this.pos.x = this.pos.x  + this.vel.x ;
+		this.pos.x = this.pos.x + this.vel.x ;
 		this.pos.y = this.pos.y + this.vel.y; 
+		this.vel.x = this.vel.x + this.acc.x;
+		this.vel.y = this.vel.y + this.acc.y;
+		this.acc.x = 0;
+		this.acc.y = 0;
 		
 		if(this.species == 'a' || this.species == 'c'){
 		this.ang = (this.ang + this.rot)%360;
@@ -345,11 +354,11 @@ Particle.prototype = {
 		
 		if(this.walls){
 			if((this.vel.x  > 0 && this.pos.x  > width) || (this.vel.x  < 0 && this.pos.x < 0)){
-				this.vel.x  = -1*this.vel.x ;
+				this.vel.x  = -1*WALL_DAMPING*this.vel.x ;
 				if(this.pos.x > width){this.pos.x = width;} else {this.pos.x = 0;}
 			}
 			if((this.vel.y > 0 && this.pos.y  > height) || (this.vel.y  < 0 && this.pos.y < 0)){
-				this.vel.y = -1*this.vel.y;
+				this.vel.y = -1*WALL_DAMPING*this.vel.y;
 				if(this.pos.y > height){this.pos.y = height;} else {this.pos.y = 0;}
 			}
 		}
@@ -372,13 +381,14 @@ function drawWorld(){
 	//cycle through each of the particle lists
 	//and update positions
 	if(!paused){
+		doForces();
 		for(let sp in particles){
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
 					parts_live++;
 					p.update();
-					p.vel.y += 0.05;
+					//p.vel.y += 0.05;
 				} else {
 					particles[sp].dead = true;
 				}
@@ -392,7 +402,14 @@ function drawWorld(){
 	if(showParticles){	
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
-		particles[sp].ctx.fillStyle = colours[sp];
+		if(particles[sp].list.length > 1 && showBounding){
+			let box = calculateBoundingBox(particles[sp].list);
+			particles[sp].ctx.beginPath();
+			particles[sp].ctx.strokeStyle = colours[sp];
+			particles[sp].ctx.rect(box.xMin, box.yMin, box.width, box.height);
+			particles[sp].ctx.stroke();
+		}
+				particles[sp].ctx.fillStyle = colours[sp];
 		for(let i = 0, l = particles[sp].list.length; i < l; i++){
 			let p = particles[sp].list[i];
 			if(!p.dead){
@@ -418,7 +435,7 @@ function drawWorld(){
 		debugBox.innerHTML = 'FPS: ' + fps +'<br>N(live): ' + parts_live + '<br>N(all): '+ (particles['a'].list.length + particles['b'].list.length + particles['c'].list.length);
 	}
 	lastLoop = thisLoop;
-	
+	buildTree('b');
 	requestAnimationFrame(drawWorld);
 
 }

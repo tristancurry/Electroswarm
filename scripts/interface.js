@@ -141,6 +141,10 @@ function handleViewOptionsClicks(event){
 			case 'chk_showparticles':
 				showParticles = !showParticles;
 				break;
+				
+			case 'chk_showBounding':
+				showBounding = !showBounding;
+				break;
 		}
 	}
 }
