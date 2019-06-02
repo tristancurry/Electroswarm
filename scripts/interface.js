@@ -145,6 +145,10 @@ function handleViewOptionsClicks(event){
 			case 'chk_showBounding':
 				showBounding = !showBounding;
 				break;
+			
+			case 'chk_showTree':
+				showTree = !showTree;
+				break;
 		}
 	}
 }

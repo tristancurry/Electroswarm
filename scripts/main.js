@@ -20,7 +20,7 @@ const colours = {
 //establish canvas contexts and variables
 const canvas0 = document.getElementById('canvas0');
 const ctx0 = canvas0.getContext('2d');
-
+ctx0.globalCompositeOperation = 'screen';
 
 const height = canvas0.height;
 const width = canvas0.width;
@@ -49,6 +49,7 @@ let selectedSpecies = 'b';
 let spawnQuantity = 1;
 
 let showParticles = true;
+let showTree = true;
 let simpleRender = true;
 let showBounding = true;
 
@@ -108,6 +109,7 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
    	this.walls = true;
 	this.species = species;
 	this.dead = false;
+	this.interactionList = [];
 	
 
 	
@@ -157,6 +159,7 @@ function createParticle(particles_obj){
 	
 	//TODO: generate particles with some scatter from the spawn point, to avoid big accelerations
 }
+
 
 function createParticles(n, particles_obj){
 	let p_o = null;
@@ -285,7 +288,6 @@ Particle.prototype = {
 	type: 'particle',
 	label: "",	
 	colour: "rgb(255,255,255)",
-	interactList: [],
 	
 	render_a: function(ctx) {  //triangle particles
 		ctx.save();
@@ -362,7 +364,7 @@ Particle.prototype = {
 				if(this.pos.y > height){this.pos.y = height;} else {this.pos.y = 0;}
 			}
 		}
-		this.interactList = [];
+		this.interactionList = [];
 	}
 };
 
@@ -381,6 +383,12 @@ function drawWorld(){
 	//cycle through each of the particle lists
 	//and update positions
 	if(!paused){
+		if(bha_calc){
+			for(let sp in particles){
+				buildTree(sp);
+			}
+		}
+
 		doForces();
 		for(let sp in particles){
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
@@ -399,7 +407,7 @@ function drawWorld(){
 	
 	//cycle through each of the particle list
 	//and render the particles
-	if(showParticles){	
+
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
 		if(particles[sp].list.length > 1 && showBounding){
@@ -408,15 +416,32 @@ function drawWorld(){
 			particles[sp].ctx.strokeStyle = colours[sp];
 			particles[sp].ctx.rect(box.xMin, box.yMin, box.width, box.height);
 			particles[sp].ctx.stroke();
+
 		}
-				particles[sp].ctx.fillStyle = colours[sp];
-		for(let i = 0, l = particles[sp].list.length; i < l; i++){
-			let p = particles[sp].list[i];
-			if(!p.dead){
-				if(simpleRender){
-					p.render_d(particles[sp].ctx);
-				} else {
-					p.render(particles[sp].ctx);
+		
+		if(showTree && bha_calc){
+			
+			for(let i = 0, l = nodeList[sp].length; i < l; i++){
+				let thisNode = nodeList[sp][i];
+				particles[sp].ctx.beginPath();
+				particles[sp].ctx.strokeStyle = colours[sp];
+				particles[sp].ctx.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
+				particles[sp].ctx.stroke();
+			}
+
+			
+		}
+		
+		if(showParticles){
+			particles[sp].ctx.fillStyle = colours[sp];
+			for(let i = 0, l = particles[sp].list.length; i < l; i++){
+				let p = particles[sp].list[i];
+				if(!p.dead){
+					if(simpleRender){
+						p.render_d(particles[sp].ctx);
+					} else {
+						p.render(particles[sp].ctx);
+					}
 				}
 			}
 		}
@@ -424,7 +449,7 @@ function drawWorld(){
 		ctx0.drawImage(canvas_a, 0, 0);
 		ctx0.drawImage(canvas_b, 0, 0);
 		ctx0.drawImage(canvas_c, 0, 0);
-	}
+
 	
 	
 	
@@ -435,7 +460,6 @@ function drawWorld(){
 		debugBox.innerHTML = 'FPS: ' + fps +'<br>N(live): ' + parts_live + '<br>N(all): '+ (particles['a'].list.length + particles['b'].list.length + particles['c'].list.length);
 	}
 	lastLoop = thisLoop;
-	buildTree('b');
 	requestAnimationFrame(drawWorld);
 
 }
