@@ -12,6 +12,8 @@ const debugBox = document.getElementsByClassName('debug')[0];
 
 //Initialise button states (so they don't need to be specified in HTML
 
+
+
 function initialiseButtonStates(){
 	//setButtonState(btn, icon_array, value);
 	setButtonState(document.getElementById('btn_spawnQuantity'), SPAWN_ICONS, 0);

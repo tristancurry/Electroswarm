@@ -95,11 +95,13 @@ function constrain(n, min, max){
 
 
 const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
-	this.pos = {};
+	this.pos = {x: pos_x, y: pos_y};
 	this.vel = {};
 	this.acc = {};
-    this.pos.x = pos_x;
-    this.pos.y = pos_y;
+	this.mass = 1;
+	this.charge = 1;
+    //this.pos.x = pos_x;
+    //this.pos.y = pos_y;
     this.vel.x = vel_x;
     this.vel.y = vel_y;
 	this.acc.x = 0;
@@ -282,8 +284,6 @@ function killParticles(n, species){
 
 
 Particle.prototype = {
-	mass: 1, //reset according to particle type and settings in 'physical properties'
-	charge: 1, //reset according to particle type and settings in 'physical properties'
  	size: PARTICLE_SIZE,  //pixel dimensions of particle
 	type: 'particle',
 	label: "",	
@@ -375,6 +375,8 @@ let lastLoop = new Date();
 let n = 0;
 let parts_live = 0;
 drawWorld();
+
+
 function drawWorld(){
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
@@ -391,6 +393,8 @@ function drawWorld(){
 
 		doForces();
 		for(let sp in particles){
+
+			
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -420,7 +424,6 @@ function drawWorld(){
 		}
 		
 		if(showTree && bha_calc){
-			
 			for(let i = 0, l = nodeList[sp].length; i < l; i++){
 				let thisNode = nodeList[sp][i];
 				particles[sp].ctx.beginPath();

@@ -14,9 +14,9 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: 1, b: 1, c: 1},
-	b: {a: 1, b: -100, c: 1},
-	c: {a: 1, b: 1, c: 1}
+	a: {a: 10, b: 1, c: 1},
+	b: {a: 1, b: -10, c: 1},
+	c: {a: 1, b: 1, c: 20}
 }
 
 
@@ -26,8 +26,6 @@ let coupling = {
 //this will include the variable timestep stuff
 
 function calculateDistance(particle, otherThing){
-
-	
 	let dX = 0;
 	let dY = 0;
 	if(otherThing.type == 'node'){
@@ -38,6 +36,9 @@ function calculateDistance(particle, otherThing){
 		dY = otherThing.pos.y - particle.pos.y;
 	}
 
+	if(isNaN(dX)){
+		console.log('particle: ' + particle.pos.x + ', otherThing: ' + otherThing.pos.x);
+	}
 	
 	let d_sq = Math.pow(dX,2) + Math.pow(dY,2);
 	let d = Math.sqrt(d_sq);
@@ -50,7 +51,7 @@ function calculateDistance(particle, otherThing){
 function calculateForce(particle, otherThing, dists){
 
 	//need distance, and components
-	if(!dists){dists = calculateDistance(particle, otherThing)};
+	if(!dists){dists = calculateDistance(particle, otherThing);}
 	let k = coupling[particle.species][otherThing.species];
 
 	let q1 = particle.charge;
@@ -70,7 +71,7 @@ function calculateForce(particle, otherThing, dists){
 	particle.acc.x += F.x/particle.mass;
 	particle.acc.y += F.y/particle.mass;
 	
-	if(otherThing.type != 'node'){
+	if(otherThing.type != 'node' && direct_calc){
 		otherThing.acc.x -= F.x/otherThing.mass;
 		otherThing.acc.y -= F.y/otherThing.mass;
 	}	
@@ -103,12 +104,14 @@ function doForces(){  //this will be replaced by the BHA force calculations
 		
 	if(bha_calc){
 		for(let sp in particles){
-			if(particles[sp].list.length > 1){
-				for(let i = 0, l = particles[sp].list.length; i < l; i++){
-					let p = particles[sp].list[i];
+			let thisList = particles[sp].list;
+			if(thisList.length > 1){
+				for(let i = 0, l = thisList.length; i < l; i++){
+					let p = thisList[i];
 					for(let ps in particles){
-						if(nodeList[ps].length > 0){
-						buildInteractionList(p, nodeList[ps][nodeList[ps].length - 1]);//trunk is last node for each species
+						let thisNodes = nodeList[ps];
+						if(thisNodes.length > 1){
+						buildInteractionList(p, thisNodes[thisNodes.length - 1]);//trunk is last node for each species
 						}
 					}
 				}
@@ -116,7 +119,7 @@ function doForces(){  //this will be replaced by the BHA force calculations
 				for(let i = 0, l = particles[sp].list.length; i < l; i++){
 					let p = particles[sp].list[i];
 					for(let j = 0, s = p.interactionList.length; j < s; j++){
-						calculateForce(p, p.interactionList[j][0], p.interactionList[j][1]);
+						calculateForce(p, p.interactionList[j].thing, p.interactionList[j].dists);
 					}
 				}			
 			}
@@ -129,28 +132,27 @@ function doForces(){  //this will be replaced by the BHA force calculations
 
 function buildInteractionList(particle, node){ //build list of nodes and other particles for a particle to interact with (BHA mode)
 	if(node.list.length > 0){
+		console.log(node.list);
 		if(!(node.list.length == 1 && node.list[0] == particle)){ //the case where the one thing in the node is the particle in question
-			console.log(particle);
 			let dists = calculateDistance(particle, node);
-			console.log(dists);
 			if(dists[0]/Math.max(node.bounds.width, node.bounds.height) < S_D_THRESHOLD){ //if CoM of this node is 'far enough' away, add to interaction list
-				particle.interactionList.push([node, dists]);
+				let pack = {thing: node, dists: dists};
+				particle.interactionList.push(pack);
 			} else {
 			//go to the next depth of nodes, and do the same thing...
-				if(node.nodes.length > 0){ //if there are deeper nodes...
+				if(node.nodes){ //if there are deeper nodes...
 					for(np in node.nodes){
-						buildInteractionList(particle, node.nodes[np]);
-					}
-				} else {
-					//at limit of the quadtree - no more depth to explore. Interact directly with particles found at this level
-					if(node.list.length > 0){
-						for(let j = 0, s = node.list.length; j < s; j++){
-							if(node.list[j] != particle){
-								particle.interactionList.push([node.list[j], calculateDistance(particle, node.list[j])]);
-							}
+						if(node.nodes[np].list){
+						buildInteractionList(node.nodes[np]);
 						}
 					}
-				}
+				} else {
+				//this node has no deeper nodes. there could be any number of particles here!
+					let thisList = node.nodes[np].list;
+					for(let i = 0, l = node.nodes[np].list.length; i < l; i++){
+						console.log('reached bottom of nodes');
+					}
+				}	
 			}
 		}
 	}
@@ -191,15 +193,9 @@ function calculateCoM(particleList){
 	return CoM;
 }
 
-function calculateBoundingBox(particleList, CoM){
-	
-	
-	if(!CoM){
-		CoM = calculateCoM(particleList);
-	}
+function calculateBoundingBox(particleList){
 	
 	//find most extreme x and y positions in the particleList
-	//then reference these to the CoM
 	bBox = {
 		xMin: 0,
 		xMax: 0,
@@ -225,11 +221,7 @@ function calculateBoundingBox(particleList, CoM){
 			}
 		}
 	}
-	
-	//bBox.xMin -= CoM.x;
-	//bBox.xMax -= CoM.x;
-	//bBox.yMin -= CoM.y;
-	//bBox.yMax -= CoM.y;
+
 	bBox.width = bBox.xMax - bBox.xMin;
 	bBox.height = bBox.yMax - bBox.yMin;
 	
@@ -279,10 +271,9 @@ function buildTree(species){
 
 function addParticle(p, node){
 	//STEP 1. Is the particle inside the bounds of this node?
-	if(p.pos.x >= node.bounds.xMin && p.pos.x <= node.bounds.xMax && p.pos.y >= node.bounds.yMin && p.pos.y <= node.bounds.yMax){
+	if(isThisMyNode(p, node)){
 		//add to the node's list of particles
 		node.list.push(p); 
-		
 		//STEP 2. Will this particle be alone in the node?
 		if(node.list.length == 1 || node.depth >= MAX_DEPTH){
 			//we're done.
@@ -292,6 +283,7 @@ function addParticle(p, node){
 			let halfHeight = 0.5*node.bounds.height;
 			for(nd in node.nodes){
 				let thisNode = node.nodes[nd];
+				thisNode.species = p.species;
 				nodeList[p.species].push(thisNode);
 				thisNode.type = 'node';
 				thisNode.list = [];
@@ -313,6 +305,9 @@ function addParticle(p, node){
 					default:
 						break;
 				}
+				thisNode.CoM = {x:0, y:0, q:0, m:0};
+				thisNode.CoM.x = node.bounds.xMin + 0.5*node.bounds.width;
+				thisNode.CoM.y = node.bounds.yMin + 0.5*node.bounds.height;		
 				
 				thisNode.bounds.width = thisNode.bounds.xMax - thisNode.bounds.xMin;
 				thisNode.bounds.height = thisNode.bounds.yMax - thisNode.bounds.yMin;
@@ -338,40 +333,13 @@ function addParticle(p, node){
 				}
 			}	
 		}
-		
+		if(node.list.length > 0){
 		node.CoM = calculateCoM(node.list);
 		node.charge = node.CoM.q;
+		}
 	}
 }
 
-//for each particle species, do the bh quadtree thing as usual
-//this will handle self-attraction/repulsion as normal
-
-//then: how to deal with the cross-over?
-//we already will have the space neatly stratified for each species
-//for each particle,
-////'add it' to a copy of the quadtree for another species
-////this will give it an 'interaction list' to work against
-////while avoiding the need to rebuild the tree
-
-
-//so for each particle, there is...
-//an interaction list due to particles of the same species (determined for all particles of a species when the quadtree is built)
-//interaction lists due to particles of each other species
-
-//so build each quadtree first (cycle through particle lists for species a, b and c)
-//then build interaction list for each particle
-////start at trunk: is this particle FAR ENOUGH from the average position of charge (in this case, all charges?)
-////if not, go to next level of space-division. For each node, same question!
-////if yes, add this nodes' position(or distance) and total charge to this particle's interaction list
-////keep doing this until the limit of the recursion has been encountered or there's nothing else to interact with.
-////with own species - avoid self-interaction
-////with other species - 
-
-//so the extra impost, compared with a single BHA, is just the creation of two additional, independent quadtrees.
-
-
-//once each particle has its interaction list, then carry out the force calculations
 
  
 
