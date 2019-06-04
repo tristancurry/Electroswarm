@@ -13,9 +13,9 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: 500, b: 100, c: 100},
-	b: {a: 100, b: 500, c: 50},
-	c: {a: 100, b: 50, c: 500}
+	a: {a: -10, b: 10, c: 0},
+	b: {a: 10, b: -10, c: 0},
+	c: {a: 0, b: 0, c: 30}
 }
 
 
@@ -35,12 +35,12 @@ function calculateDistance(particle, otherThing){
 		dY = otherThing.pos.y - particle.pos.y;
 	}
 
-	if(isNaN(dX)){
+	/*if(isNaN(dX)){
 	console.log('corrupted distances');
 		console.log('particle: ' + particle.pos.x + ', otherThing: ' + otherThing.pos.x);
 	console.log('species: ' + particle.species + ', otherThing type: ' + otherThing.type);
 	if(otherThing.type == 'particle'){console.log('otherParticle species: ' + otherThing.species);}		
-	}
+	}*/
 	
 	let d_sq = Math.pow(dX,2) + Math.pow(dY,2);
 	let d = Math.sqrt(d_sq);
@@ -60,9 +60,7 @@ function calculateForce(particle, otherThing, dists){
 	let q2 = otherThing.charge;
 	
 	
-	//if(dists[0] < R_1) {steps = steps*10; console.log('inside R1');}
-	//if(dists[0] < R_2) {steps = steps*10; console.log('inside R2');}
-	//if(dists[0] < R_3) {steps = steps*10; console.log('inside R3');}
+
 	let F_mag = k*q1*q2/dists[1];
 		
 	let F = {
@@ -112,75 +110,70 @@ function doForces(){  //this will be replaced by the BHA force calculations
 			if(thisList.length > 0){
 				for(let i = 0, l = thisList.length; i < l; i++){
 					let p = thisList[i];
-					for(let ps in particles){
-						let thisNodes = nodeList[ps];
-						//console.log('nodelist species: ' + ps + ',particle species: ' + p.species);
-						if(thisNodes.length > 1){
-								console.log('---BUILDING INTERACTION LIST---');
-						buildInteractionList(p, thisNodes[thisNodes.length - 1]);//trunk is last node for each species
-						} else if(particles[ps].list.length > 0) {
-							console.log('direct calculation');
-							if(p != particles[ps].list[0]){
-								let dists = calculateDistance(p, particles[ps].list[0]);
-								let pack  = {thing: particles[ps].list[0], dists: dists};
+					if(!p.dead){
+						for(let ps in particles){
+							let thisNodes = nodeList[ps];
+							if(thisNodes.length > 1){
+								buildInteractionList(p, thisNodes[thisNodes.length - 1]);
+							} else if(thisNodes[thisNodes.length - 1].list.length == 1 && p.species != ps) {
+								//calculate forces directly
+								let p2 = thisNodes[thisNodes.length - 1].list[0];
+								let dists = calculateDistance(p, p2);
+								let pack = {thing: p2, dists: dists};
 								p.interactionList.push(pack);
-							}								
+							}
 						}
 					}
 				}
-				
 				for(let i = 0, l = particles[sp].list.length; i < l; i++){
 					let p = particles[sp].list[i];
-					for(let j = 0, s = p.interactionList.length; j < s; j++){
-						if(p.interactionList[j].dists[0] > R_1){
-							calculateForce(p, p.interactionList[j].thing, p.interactionList[j].dists);
+					if(!p.dead){
+						for(let j = 0, s = p.interactionList.length; j < s; j++){
+							if(p.interactionList[j].dists[0] > R_1){
+								calculateForce(p, p.interactionList[j].thing, p.interactionList[j].dists);
+							}
 						}
 					}
 				}			
 			}
 		}		
 	}
-	//direct_calc = false;
-	//bha_calc = true;
 }
 
 
 function buildInteractionList(particle, node){	//build list of nodes and other particles for a particle to interact with (BHA mode)
-	console.log('p species: ' + particle.species + ' ,pos.x: ' + particle.pos.x);
-	console.log(node);
-	console.log('CoM.x: ' + node.CoM.x);
-	if(node.list.length > 0){
-		if(!(node.list.length == 1 && node.list[0] == particle)){ //the case where the one thing in the node is the particle in question
-			let dists = calculateDistance(particle, node);
-			if(Math.max(node.bounds.width, node.bounds.height)/dists[0] < S_D_THRESHOLD){ //if CoM of this node is 'far enough' away, add to interaction list
-				console.log('far enough away');
-				let pack = {thing: node, dists: dists};
-				particle.interactionList.push(pack);
-			} else {
-				console.log('too close, going deeper..');
-				//go to the next depth of nodes, and do the same thing...
-				if(node.nodes){ //if there are deeper nodes...
-					for(np in node.nodes){
-						//if(node.nodes[np].list){
-						buildInteractionList(particle, node.nodes[np]);
-						//}
-					}
+	if(coupling[particle.species][node.species] != 0){
+		if(node.list.length > 0){
+			if(!(node.list.length == 1 && node.list[0] == particle)){ //the case where the one thing in the node is the particle in question
+				let dists = calculateDistance(particle, node);
+				if(Math.max(node.bounds.width, node.bounds.height)/dists[0] < S_D_THRESHOLD){ //if CoM of this node is 'far enough' away, add to interaction list
+					//console.log('far enough away');
+					let pack = {thing: node, dists: dists};
+					particle.interactionList.push(pack);
 				} else {
-				//this node has no deeper nodes. there could be any number of particles here!
-					let thisList = node.list;
-					for(let i = 0, l = node.list.length; i < l; i++){
-						console.log('reached bottom of nodes');
-						let p = node.list[i];
-						if(p != particle){
-							let dists = calculateDistance(particle, p);
-							let pack = {thing: p, dists: dists};
-							particle.interactionList.push(pack);
+					//console.log('too close, going deeper..');
+					//go to the next depth of nodes, and do the same thing...
+					if(node.nodes){ //if there are deeper nodes...
+						for(np in node.nodes){
+							buildInteractionList(particle, node.nodes[np]);
 						}
-					}
-				}	
+					} else {
+					//this node has no deeper nodes. there could be any number of particles here!
+						let thisList = node.list;
+						for(let i = 0, l = node.list.length; i < l; i++){
+							//console.log('reached bottom of nodes');
+							let p = node.list[i];
+							if(p != particle){
+								let dists = calculateDistance(particle, p);
+								let pack = {thing: p, dists: dists};
+								particle.interactionList.push(pack);
+							}
+						}
+					}	
+				}
 			}
 		}
-	}
+	} 
 };
 
 
@@ -275,6 +268,7 @@ function buildTree(species){
 	nodeList[species] = []; //tidy this up later with a 'retire nodes' approach (avoid GC operations)
 	
 	let trunk = {
+		species: species,
 		type: 'node',
 		bounds: calculateBoundingBox(particles[species].list),	
 		list: [],

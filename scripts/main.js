@@ -9,7 +9,7 @@ const SQU_SIZE_FACTOR = 1;
 const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,180,100)';
 const COLOUR_C = 'rgb(0,255,255)';
-const WALL_DAMPING = 0.2;
+const WALL_DAMPING = 0.6;
 
 const colours = {
 	a: COLOUR_A,
@@ -51,7 +51,7 @@ let spawnQuantity = 1;
 let showParticles = true;
 let showTree = true;
 let simpleRender = true;
-let showBounding = true;
+let showBounding = false;
 
 
 let particles = {
