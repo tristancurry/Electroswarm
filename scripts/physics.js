@@ -1,8 +1,7 @@
 //physics.js
 
-const R_1 = 20; //radius within which the timestep for physics calculations is reduced by factor of 10
-const R_2 = 2;	//timestep reduced by another factor of 10
-const R_3 = 0.2; //etc
+const R_1 = 20; //radius within which force calculations are not performed (avoid excessive accelerations)
+
 
 const MAX_DEPTH = 10; //maximum depth for recursion in building quadtree
 const S_D_THRESHOLD = 0.5; //value of s/d below which the CoM of a node can be used for force calculation. S is the width of the node, d is the distance of a particle to the node's CoM.
@@ -14,9 +13,9 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: 10, b: 1, c: 1},
-	b: {a: 1, b: -10, c: 1},
-	c: {a: 1, b: 1, c: 20}
+	a: {a: 500, b: 100, c: 100},
+	b: {a: 100, b: 500, c: 50},
+	c: {a: 100, b: 50, c: 500}
 }
 
 
@@ -37,7 +36,10 @@ function calculateDistance(particle, otherThing){
 	}
 
 	if(isNaN(dX)){
+	console.log('corrupted distances');
 		console.log('particle: ' + particle.pos.x + ', otherThing: ' + otherThing.pos.x);
+	console.log('species: ' + particle.species + ', otherThing type: ' + otherThing.type);
+	if(otherThing.type == 'particle'){console.log('otherParticle species: ' + otherThing.species);}		
 	}
 	
 	let d_sq = Math.pow(dX,2) + Math.pow(dY,2);
@@ -57,6 +59,7 @@ function calculateForce(particle, otherThing, dists){
 	let q1 = particle.charge;
 	let q2 = otherThing.charge;
 	
+	
 	//if(dists[0] < R_1) {steps = steps*10; console.log('inside R1');}
 	//if(dists[0] < R_2) {steps = steps*10; console.log('inside R2');}
 	//if(dists[0] < R_3) {steps = steps*10; console.log('inside R3');}
@@ -66,8 +69,9 @@ function calculateForce(particle, otherThing, dists){
 		x : F_mag*(dists[2]/dists[0]),
 		y : F_mag*(dists[3]/dists[0])
 	}
-	
-			
+		
+	//console.log(otherThing.type + ', F.x : ' + F.x);
+		
 	particle.acc.x += F.x/particle.mass;
 	particle.acc.y += F.y/particle.mass;
 	
@@ -78,7 +82,7 @@ function calculateForce(particle, otherThing, dists){
 }
 
 function doForces(){  //this will be replaced by the BHA force calculations
-	direct_calc = true;
+	//direct_calc = true;
 	if(direct_calc){
 		//for each particle,
 		//go through own species list
@@ -99,19 +103,28 @@ function doForces(){  //this will be replaced by the BHA force calculations
 				}
 			}	
 		}
-		//go through each other species' lists
+		//TODO: go through each other species' lists
 	} else
 		
 	if(bha_calc){
 		for(let sp in particles){
 			let thisList = particles[sp].list;
-			if(thisList.length > 1){
+			if(thisList.length > 0){
 				for(let i = 0, l = thisList.length; i < l; i++){
 					let p = thisList[i];
 					for(let ps in particles){
 						let thisNodes = nodeList[ps];
+						//console.log('nodelist species: ' + ps + ',particle species: ' + p.species);
 						if(thisNodes.length > 1){
+								console.log('---BUILDING INTERACTION LIST---');
 						buildInteractionList(p, thisNodes[thisNodes.length - 1]);//trunk is last node for each species
+						} else if(particles[ps].list.length > 0) {
+							console.log('direct calculation');
+							if(p != particles[ps].list[0]){
+								let dists = calculateDistance(p, particles[ps].list[0]);
+								let pack  = {thing: particles[ps].list[0], dists: dists};
+								p.interactionList.push(pack);
+							}								
 						}
 					}
 				}
@@ -119,38 +132,50 @@ function doForces(){  //this will be replaced by the BHA force calculations
 				for(let i = 0, l = particles[sp].list.length; i < l; i++){
 					let p = particles[sp].list[i];
 					for(let j = 0, s = p.interactionList.length; j < s; j++){
-						calculateForce(p, p.interactionList[j].thing, p.interactionList[j].dists);
+						if(p.interactionList[j].dists[0] > R_1){
+							calculateForce(p, p.interactionList[j].thing, p.interactionList[j].dists);
+						}
 					}
 				}			
 			}
 		}		
 	}
-	direct_calc = false;
-	bha_calc = true;
+	//direct_calc = false;
+	//bha_calc = true;
 }
 
 
-function buildInteractionList(particle, node){ //build list of nodes and other particles for a particle to interact with (BHA mode)
+function buildInteractionList(particle, node){	//build list of nodes and other particles for a particle to interact with (BHA mode)
+	console.log('p species: ' + particle.species + ' ,pos.x: ' + particle.pos.x);
+	console.log(node);
+	console.log('CoM.x: ' + node.CoM.x);
 	if(node.list.length > 0){
-		console.log(node.list);
 		if(!(node.list.length == 1 && node.list[0] == particle)){ //the case where the one thing in the node is the particle in question
 			let dists = calculateDistance(particle, node);
-			if(dists[0]/Math.max(node.bounds.width, node.bounds.height) < S_D_THRESHOLD){ //if CoM of this node is 'far enough' away, add to interaction list
+			if(Math.max(node.bounds.width, node.bounds.height)/dists[0] < S_D_THRESHOLD){ //if CoM of this node is 'far enough' away, add to interaction list
+				console.log('far enough away');
 				let pack = {thing: node, dists: dists};
 				particle.interactionList.push(pack);
 			} else {
-			//go to the next depth of nodes, and do the same thing...
+				console.log('too close, going deeper..');
+				//go to the next depth of nodes, and do the same thing...
 				if(node.nodes){ //if there are deeper nodes...
 					for(np in node.nodes){
-						if(node.nodes[np].list){
-						buildInteractionList(node.nodes[np]);
-						}
+						//if(node.nodes[np].list){
+						buildInteractionList(particle, node.nodes[np]);
+						//}
 					}
 				} else {
 				//this node has no deeper nodes. there could be any number of particles here!
-					let thisList = node.nodes[np].list;
-					for(let i = 0, l = node.nodes[np].list.length; i < l; i++){
+					let thisList = node.list;
+					for(let i = 0, l = node.list.length; i < l; i++){
 						console.log('reached bottom of nodes');
+						let p = node.list[i];
+						if(p != particle){
+							let dists = calculateDistance(particle, p);
+							let pack = {thing: p, dists: dists};
+							particle.interactionList.push(pack);
+						}
 					}
 				}	
 			}
@@ -254,7 +279,6 @@ function buildTree(species){
 		bounds: calculateBoundingBox(particles[species].list),	
 		list: [],
 		CoM: {x:0,y:0,m:0,q:0},
-		nodes: {UL: {}, UR: {}, LL: {}, LR: {}},
 		charge: 0,
 		depth: 0
 	}
@@ -281,6 +305,7 @@ function addParticle(p, node){
 			//great. now we gotta make some sub-nodes and try to put each of the existing particles in those too
 			let halfWidth = 0.5*node.bounds.width;
 			let halfHeight = 0.5*node.bounds.height;
+			node.nodes = {UL:{}, UR:{}, LL:{}, LR:{}}
 			for(nd in node.nodes){
 				let thisNode = node.nodes[nd];
 				thisNode.species = p.species;
@@ -288,7 +313,6 @@ function addParticle(p, node){
 				thisNode.type = 'node';
 				thisNode.list = [];
 				thisNode.depth = node.depth + 1;
-				thisNode.nodes = {UL: {}, UR: {}, LL: {}, LR: {}};
 				switch(nd){
 					case 'UL':
 						thisNode.bounds = {xMin:node.bounds.xMin, xMax: node.bounds.xMin + halfWidth, yMin:node.bounds.yMin, yMax: node.bounds.yMin + halfHeight};

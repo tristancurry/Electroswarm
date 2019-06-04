@@ -1,4 +1,4 @@
-let CACHE_NAME = 'electroswarm-cache-test02c';
+let CACHE_NAME = 'electroswarm-cache-test02d';
 let urlsToCache = [
 	'index.html',
 	'manifest.json',
