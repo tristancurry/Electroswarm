@@ -1,10 +1,12 @@
 //physics.js
 
-const R_1 = 20; //radius within which force calculations are not performed (avoid excessive accelerations)
+const R_1 = 1; //radius within which force calculations are not performed (avoid excessive accelerations)
+const R_1_SQ = Math.pow(R_1,2);
 
 
 const MAX_DEPTH = 10; //maximum depth for recursion in building quadtree
 const S_D_THRESHOLD = 0.5; //value of s/d below which the CoM of a node can be used for force calculation. S is the width of the node, d is the distance of a particle to the node's CoM.
+const S_D_THRESHOLD_SQ = Math.pow(S_D_THRESHOLD,2);
 
 direct_calc = false;
 bha_calc = true;
@@ -13,9 +15,9 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: -10, b: 10, c: 0},
-	b: {a: 10, b: -10, c: 0},
-	c: {a: 0, b: 0, c: 30}
+	a: {a: -50, b: 50, c: 20},
+	b: {a: 50, b: -50, c: 20},
+	c: {a: 20, b: 20, c: 150}
 }
 
 
@@ -43,9 +45,8 @@ function calculateDistance(particle, otherThing){
 	}*/
 	
 	let d_sq = Math.pow(dX,2) + Math.pow(dY,2);
-	let d = Math.sqrt(d_sq);
 	
-	let d_pack = [d, d_sq, dX, dY];
+	let d_pack = [d_sq, dX, dY];
 	return d_pack;
 }
 
@@ -59,16 +60,16 @@ function calculateForce(particle, otherThing, dists){
 	let q1 = particle.charge;
 	let q2 = otherThing.charge;
 	
-	
+	let d = Math.sqrt(dists[0]);
 
-	let F_mag = k*q1*q2/dists[1];
+	let F_mag = k*q1*q2/dists[0];
 		
 	let F = {
-		x : F_mag*(dists[2]/dists[0]),
-		y : F_mag*(dists[3]/dists[0])
+		x : F_mag*(dists[1]/d),
+		y : F_mag*(dists[2]/d)
 	}
 		
-	//console.log(otherThing.type + ', F.x : ' + F.x);
+
 		
 	particle.acc.x += F.x/particle.mass;
 	particle.acc.y += F.y/particle.mass;
@@ -129,7 +130,7 @@ function doForces(){  //this will be replaced by the BHA force calculations
 					let p = particles[sp].list[i];
 					if(!p.dead){
 						for(let j = 0, s = p.interactionList.length; j < s; j++){
-							if(p.interactionList[j].dists[0] > R_1){
+							if(p.interactionList[j].dists[0] > R_1_SQ){
 								calculateForce(p, p.interactionList[j].thing, p.interactionList[j].dists);
 							}
 						}
@@ -146,7 +147,7 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 		if(node.list.length > 0){
 			if(!(node.list.length == 1 && node.list[0] == particle)){ //the case where the one thing in the node is the particle in question
 				let dists = calculateDistance(particle, node);
-				if(Math.max(node.bounds.width, node.bounds.height)/dists[0] < S_D_THRESHOLD){ //if CoM of this node is 'far enough' away, add to interaction list
+				if((node.bounds.width*node.bounds.height)/dists[0] < S_D_THRESHOLD_SQ){ //if CoM of this node is 'far enough' away, add to interaction list
 					//console.log('far enough away');
 					let pack = {thing: node, dists: dists};
 					particle.interactionList.push(pack);
@@ -268,6 +269,7 @@ function buildTree(species){
 	nodeList[species] = []; //tidy this up later with a 'retire nodes' approach (avoid GC operations)
 	
 	let trunk = {
+		visible: true,
 		species: species,
 		type: 'node',
 		bounds: calculateBoundingBox(particles[species].list),	
@@ -279,7 +281,10 @@ function buildTree(species){
 	
 	//now cram each particle into the tree structure
 	for(let i = 0, l = particles[species].list.length; i < l; i++){
-		addParticle(particles[species].list[i], trunk);
+		let p = particles[species].list[i];
+		if(!p.dead){
+			addParticle(particles[species].list[i], trunk);
+		}	
 	}
 	
 	nodeList[species].push(trunk);
@@ -297,12 +302,14 @@ function addParticle(p, node){
 			//we're done.
 		} else if(node.list.length == 2){
 			//great. now we gotta make some sub-nodes and try to put each of the existing particles in those too
+			node.visible = false;
 			let halfWidth = 0.5*node.bounds.width;
 			let halfHeight = 0.5*node.bounds.height;
 			node.nodes = {UL:{}, UR:{}, LL:{}, LR:{}}
 			for(nd in node.nodes){
 				let thisNode = node.nodes[nd];
 				thisNode.species = p.species;
+				thisNode.visible = true;
 				nodeList[p.species].push(thisNode);
 				thisNode.type = 'node';
 				thisNode.list = [];

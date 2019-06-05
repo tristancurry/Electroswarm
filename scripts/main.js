@@ -20,26 +20,43 @@ const colours = {
 //establish canvas contexts and variables
 const canvas0 = document.getElementById('canvas0');
 const ctx0 = canvas0.getContext('2d');
-ctx0.globalCompositeOperation = 'screen';
+//ctx0.globalCompositeOperation = 'screen';
 
 const height = canvas0.height;
 const width = canvas0.width;
 
 
 const canvas_a = document.createElement('canvas');
-const ctx_a = canvas_a.getContext('2d');
+const ctx_a = canvas_a.getContext('2d' , {alpha: false});
 canvas_a.width = canvas0.width;
 canvas_a.height = canvas0.height;
 
 const canvas_b = document.createElement('canvas');
-const ctx_b = canvas_b.getContext('2d');
+const ctx_b = canvas_b.getContext('2d', {alpha: false});
 canvas_b.width = canvas0.width;
 canvas_b.height = canvas0.height;
 
 const canvas_c = document.createElement('canvas');
-const ctx_c = canvas_c.getContext('2d');
+const ctx_c = canvas_c.getContext('2d', {alpha: false});
 canvas_c.width = canvas0.width;
 canvas_c.height = canvas0.height;
+
+const canvas_bha = document.createElement('canvas');
+const ctx_bha = canvas_bha.getContext('2d', {alpha: false});
+canvas_bha.width = canvas0.width;
+canvas_bha.height = canvas0.height;
+
+const canvas_bhb = document.createElement('canvas');
+const ctx_bhb = canvas_bhb.getContext('2d', {alpha: false});
+canvas_bhb.width = canvas0.width;
+canvas_bhb.height = canvas0.height;
+
+const canvas_bhc = document.createElement('canvas');
+const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
+canvas_bhc.width = canvas0.width;
+canvas_bhc.height = canvas0.height;
+
+
 
 let paused = false;
 
@@ -59,19 +76,22 @@ let particles = {
 		species: 'a',
 		list: [],
 		dead: false,
-		ctx: ctx_a
+		ctx: ctx_a,
+		ctx_bh: ctx_bha
 	},
 	b: {
 		species: 'b',
 		list: [],
 		dead: false,
-		ctx: ctx_b
+		ctx: ctx_b,
+		ctx_bh: ctx_bhb
 	},
 	c: {
 		species: 'c',
 		list: [],
 		dead: false,
-		ctx: ctx_c
+		ctx: ctx_c,
+		ctx_bh: ctx_bhc
 	}
 };
 
@@ -380,7 +400,7 @@ drawWorld();
 function drawWorld(){
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
-	ctx0.clearRect(0,0,width,height);
+
 	
 	//cycle through each of the particle lists
 	//and update positions
@@ -414,6 +434,7 @@ function drawWorld(){
 
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
+		particles[sp].ctx_bh.clearRect(0,0,width,height);
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
 			particles[sp].ctx.beginPath();
@@ -426,10 +447,17 @@ function drawWorld(){
 		if(showTree && bha_calc){
 			for(let i = 0, l = nodeList[sp].length; i < l; i++){
 				let thisNode = nodeList[sp][i];
-				particles[sp].ctx.beginPath();
-				particles[sp].ctx.strokeStyle = colours[sp];
-				particles[sp].ctx.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
-				particles[sp].ctx.stroke();
+				if(thisNode.visible){
+					//TODO - have option for 'filled BHA nodes' or 'wireframe BHA nodes'
+					particles[sp].ctx_bh.beginPath();
+					/*particles[sp].ctx_bh.strokeStyle = colours[sp];
+					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
+					particles[sp].ctx_bh.stroke();*/
+					particles[sp].ctx_bh.fillStyle = colours[sp];
+					particles[sp].ctx_bh.globalAlpha = thisNode.depth/MAX_DEPTH;
+					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
+					particles[sp].ctx_bh.fill();
+				}
 			}
 
 			
@@ -448,10 +476,16 @@ function drawWorld(){
 				}
 			}
 		}
-	}
-		ctx0.drawImage(canvas_a, 0, 0);
-		ctx0.drawImage(canvas_b, 0, 0);
-		ctx0.drawImage(canvas_c, 0, 0);
+	} 	
+	//ctx0.globalCompositeOperation = 'source-over';
+	ctx0.clearRect(0,0,width, height);
+	ctx0.globalCompositeOperation = 'screen';
+	ctx0.drawImage(canvas_bha, 0, 0);
+	ctx0.drawImage(canvas_bhb, 0, 0);
+	ctx0.drawImage(canvas_bhc, 0, 0);
+	ctx0.drawImage(canvas_a, 0, 0);
+	ctx0.drawImage(canvas_b, 0, 0);
+	ctx0.drawImage(canvas_c, 0, 0);
 
 	
 	
