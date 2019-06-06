@@ -1,6 +1,6 @@
 //physics.js
 
-const R_1 = 1; //radius within which force calculations are not performed (avoid excessive accelerations)
+const R_1 = 20; //radius within which force calculations are not performed (avoid excessive accelerations)
 const R_1_SQ = Math.pow(R_1,2);
 
 
@@ -17,7 +17,7 @@ let nodeList = {a: [], b: [], c: []};
 let coupling = {
 	a: {a: -50, b: 50, c: 20},
 	b: {a: 50, b: -50, c: 20},
-	c: {a: 20, b: 20, c: 150}
+	c: {a: 20, b: 20, c: 50}
 }
 
 
@@ -155,8 +155,8 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 					//console.log('too close, going deeper..');
 					//go to the next depth of nodes, and do the same thing...
 					if(node.nodes){ //if there are deeper nodes...
-						for(np in node.nodes){
-							buildInteractionList(particle, node.nodes[np]);
+						for(let i = 0, l = node.nodes.length; i < l; i++){
+							buildInteractionList(particle, node.nodes[i]);
 						}
 					} else {
 					//this node has no deeper nodes. there could be any number of particles here!
@@ -305,26 +305,26 @@ function addParticle(p, node){
 			node.visible = false;
 			let halfWidth = 0.5*node.bounds.width;
 			let halfHeight = 0.5*node.bounds.height;
-			node.nodes = {UL:{}, UR:{}, LL:{}, LR:{}}
-			for(nd in node.nodes){
-				let thisNode = node.nodes[nd];
+			node.nodes = [{}, {}, {}, {}];
+			for(let i = 0, l = node.nodes.length; i < l; i++){
+				let thisNode = node.nodes[i];
 				thisNode.species = p.species;
 				thisNode.visible = true;
 				nodeList[p.species].push(thisNode);
 				thisNode.type = 'node';
 				thisNode.list = [];
 				thisNode.depth = node.depth + 1;
-				switch(nd){
-					case 'UL':
+				switch(i){
+					case 0:
 						thisNode.bounds = {xMin:node.bounds.xMin, xMax: node.bounds.xMin + halfWidth, yMin:node.bounds.yMin, yMax: node.bounds.yMin + halfHeight};
 						break;					
-					case 'UR':
+					case 1:
 						thisNode.bounds = {xMin:node.bounds.xMin + halfWidth, xMax: node.bounds.xMax, yMin:node.bounds.yMin, yMax: node.bounds.yMin + halfHeight};
 						break;
-					case 'LL':
+					case 2:
 						thisNode.bounds = {xMin:node.bounds.xMin, xMax: node.bounds.xMin + halfWidth, yMin:node.bounds.yMin + halfHeight, yMax: node.bounds.yMax};
 						break;					
-					case 'LR':
+					case 3:
 						thisNode.bounds = {xMin:node.bounds.xMin + halfWidth, xMax: node.bounds.xMax, yMin:node.bounds.yMin + halfHeight, yMax: node.bounds.yMax};
 						break;
 					default:

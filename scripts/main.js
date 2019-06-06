@@ -9,7 +9,7 @@ const SQU_SIZE_FACTOR = 1;
 const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,180,100)';
 const COLOUR_C = 'rgb(0,255,255)';
-const WALL_DAMPING = 0.6;
+const WALL_DAMPING = 0.9;
 
 const colours = {
 	a: COLOUR_A,
@@ -159,7 +159,16 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 
 
 function createParticle(particles_obj){
-	let p = new Particle(particles_obj.species, canvas0.width/2 + 20*Math.random() - 10 , canvas0.height/2 + 20*Math.random() - 10, 5*Math.random() - 2.5, 5*Math.random() - 2.5);
+	let spreadX = 200;
+	let randX = 2*spreadX*Math.random() - spreadX;
+	let spreadY = Math.sqrt(spreadX*spreadX - randX*randX);
+	let randY = 2*spreadY*Math.random() - spreadY;
+	let k = coupling[particles_obj.species][particles_obj.species];
+	let r = Math.sqrt(randX*randX  + randY*randY);
+	let vel = (10*k*spawnQuantity/r)/60;
+	let velX = -(randY/r)*vel;
+	let velY = (randX/r)*vel
+	let p = new Particle(particles_obj.species, canvas0.width/2 + randX , canvas0.height/2 + randY, velX, velY);
 	
 	if(particles_obj.dead){
 	//Make use of 'dead' particles in particle list first, rather than always adding new ones
@@ -179,7 +188,7 @@ function createParticle(particles_obj){
 		particles_obj.list.push(p);
 	}
 	
-	//TODO: generate particles with some scatter from the spawn point, to avoid big accelerations
+
 }
 
 
