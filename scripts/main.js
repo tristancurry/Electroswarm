@@ -134,22 +134,7 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.interactionList = [];
 	this.colour = COLOURS[species];
 
-	switch(this.species){
-		case 'a':
-			this.render = this.render_a;
-			break;
-		case 'b':
-			this.render = this.render_b;
-			break;
-		case 'c':
-			this.render = this.render_c;
-
-			break;
-		default:
-			this.species = 'b';
-			this.render = this.render_b;
-			break;
-		}	
+	
     return this;
 };
 
@@ -341,36 +326,46 @@ Particle.prototype = {
 		ctx.restore();
 	},
 	
-	render_b: function(ctx) {  //circle particles
+	render: function(ctx) {
 		ctx.save();
 		ctx.lineWidth = 3;
-		ctx.translate(this.pos.x, this.pos.y)
-		ctx.beginPath();
-		ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+		ctx.translate(this.pos.x, this.pos.y);
+		switch(this.species){
+			case 'a':
+				ctx.beginPath();
+				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				break;
+			
+			case 'b':
+				ctx.beginPath();
+				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				break;
+				
+			case 'c':
+				ctx.rotate(2*Math.PI*(this.ang + 45)/360);
+				ctx.beginPath();
+				ctx.rect(-0.5*SQU_SIZE_FACTOR*this.size, -0.5*SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size);
+				break;
+				
+			default:
+				ctx.beginPath();
+				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				break;
+		}
 		ctx.fill();
 		ctx.restore();
 	},
 		
-	render_c: function(ctx) {//diamond particles
-		ctx.save();
-		ctx.lineWidth = 3;
-		ctx.translate(this.pos.x, this.pos.y);
-		ctx.rotate(2*Math.PI*(this.ang + 45)/360);
-		ctx.beginPath();
-		ctx.rect(-0.5*SQU_SIZE_FACTOR*this.size, -0.5*SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size);
-		ctx.fill();
-		//ctx.stroke();
-		ctx.restore();
-	},
+
+
 	
-		render_d: function(ctx) {//most basic shape
+	render_simple: function(ctx) {//most basic shape
 		ctx.save();
 		ctx.lineWidth = 3;
 		ctx.translate(this.pos.x, this.pos.y);
 		ctx.beginPath();
 		ctx.rect(-0.5*this.size, -0.5*this.size, this.size, this.size);
 		ctx.fill();
-		//ctx.stroke();
 		ctx.restore();
 	},
 	
@@ -485,7 +480,7 @@ function drawWorld(){
 				let p = particles[sp].list[i];
 				if(!p.dead){
 					if(simpleRender){
-						p.render_d(particles[sp].ctx);
+						p.render_simple(particles[sp].ctx);
 					} else {
 						p.render(particles[sp].ctx);
 					}
