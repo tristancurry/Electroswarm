@@ -18,9 +18,9 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: -50, b: 50, c: 20},
-	b: {a: 50, b: -50, c: 20},
-	c: {a: 20, b: 20, c: 50}
+	a: {a: -50, b: 50, c: 0},
+	b: {a: 50, b: -50, c: 0},
+	c: {a: 0, b: 0, c: 50}
 }
 
 
@@ -28,6 +28,11 @@ let coupling = {
 function convertButtonValue(btnValue, values){
 	return values[btnValue];
 }
+
+function convertValueToButton(value, values){
+	return values.indexOf(value);
+}
+
 
 
 
@@ -68,12 +73,12 @@ function calculateForce(particle, otherThing, dists){
 	
 	let k = coupling[sp1][sp2];
 
-	let q1 = particle.charges[sp1];
+	let q1 = Particle.prototype.charges[sp1];
 	let q2 = 0;
 	if(otherThing.type == 'node'){
 		q2 = otherThing.charge;
 	} else {
-		q2 = otherThing.charges[sp2];
+		q2 = Particle.prototype.charges[sp2];
 	}
 
 	
@@ -86,12 +91,12 @@ function calculateForce(particle, otherThing, dists){
 		y : F_mag*(dists[2]/d)
 	}
 	
-	particle.acc.x += F.x/particle.masses[sp1];
-	particle.acc.y += F.y/particle.masses[sp1];
+	particle.acc.x += F.x/Particle.prototype.masses[sp1];
+	particle.acc.y += F.y/Particle.prototype.masses[sp1];
 	
 	if(otherThing.type != 'node' && direct_calc){
-		otherThing.acc.x -= F.x/otherThing.masses[sp2];
-		otherThing.acc.y -= F.y/otherThing.masses[sp2];
+		otherThing.acc.x -= F.x/Particle.prototype.masses[sp2];
+		otherThing.acc.y -= F.y/Particle.prototype.masses[sp2];
 	}	
 }
 
@@ -204,7 +209,7 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 
 function calculateCoM(particleList){
 	let m = Particle.prototype.masses[particleList.species];
-	let m = Particle.prototype.charges[particleList.species];
+	let q = Particle.prototype.charges[particleList.species];
 	let CoM = {x:0, y:0, m:0, q:0};
 	
 	//calculate total mass (and charge, while we're at it)
@@ -327,7 +332,6 @@ function addParticle(p, node){
 				let thisNode = node.nodes[i];
 				thisNode.species = p.species;
 				thisNode.visible = true;
-				nodeList[p.species].push(thisNode);
 				thisNode.type = 'node';
 				thisNode.list = [];
 				thisNode.depth = node.depth + 1;
@@ -354,7 +358,7 @@ function addParticle(p, node){
 				
 				thisNode.bounds.width = thisNode.bounds.xMax - thisNode.bounds.xMin;
 				thisNode.bounds.height = thisNode.bounds.yMax - thisNode.bounds.yMin;
-				
+				nodeList[p.species].push(thisNode);
 			}
 			
 			//see which node a particle should go into, then try to put it into that node.

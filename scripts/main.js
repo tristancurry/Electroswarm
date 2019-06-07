@@ -10,12 +10,13 @@ const SQU_SIZE_FACTOR = 1;
 const COLOURS = {
 	a: 'rgb(255,0,255)',
 	b: 'rgb(255,255,0)',
-	c:'rgb(0,255,255)'	
+	c: 'rgb(0,255,255)'	
 }
 
 const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,255,0)';
 const COLOUR_C = 'rgb(0,255,255)';
+
 const WALL_DAMPING = 0.9;
 
 
@@ -119,9 +120,6 @@ function constrain(n, min, max){
 
 const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.species = species;
-	if(this.species != 'a' || this.species != 'b' || this.species != 'c'){
-		this.species = 'b';
-	}
 	this.pos = {x: pos_x, y: pos_y};
     this.vel = {x: vel_x, y: vel_y};
 	this.acc = {x: 0, y: 0};
@@ -129,10 +127,7 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.ang = 0;
    	this.walls = true;
 	this.dead = false;
-	this.interactionList = [];
-	this.colour = COLOURS[species];
-
-	
+	this.interactionList = [];	
     return this;
 };
 
@@ -401,6 +396,12 @@ Particle.prototype = {
 let lastLoop = new Date();
 let n = 0;
 let parts_live = 0;
+for(let sp in particles){
+		particles[sp].ctx.strokeStyle = COLOURS[sp];
+		particles[sp].ctx.fillStyle = COLOURS[sp];
+		particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
+		particles[sp].ctx_bh.fillStyle = COLOURS[sp];
+}
 drawWorld();
 
 
@@ -421,9 +422,7 @@ function drawWorld(){
 		}
 
 		doForces();
-		for(let sp in particles){
-
-			
+		for(let sp in particles){		
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -444,10 +443,11 @@ function drawWorld(){
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
+
+		
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
 			particles[sp].ctx.beginPath();
-			particles[sp].ctx.strokeStyle = COLOURS[sp];
 			particles[sp].ctx.rect(box.xMin, box.yMin, box.width, box.height);
 			particles[sp].ctx.stroke();
 
@@ -457,23 +457,15 @@ function drawWorld(){
 			for(let i = 0, l = nodeList[sp].length; i < l; i++){
 				let thisNode = nodeList[sp][i];
 				if(thisNode.visible){
-					//TODO - have option for 'filled BHA nodes' or 'wireframe BHA nodes'
 					particles[sp].ctx_bh.beginPath();
-					/*particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
-					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
-					particles[sp].ctx_bh.stroke();*/
-					particles[sp].ctx_bh.fillStyle = COLOURS[sp];
 					particles[sp].ctx_bh.globalAlpha = (thisNode.depth + thisNode.sub_depth/4)/MAX_DEPTH;
 					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
 					particles[sp].ctx_bh.fill();
 				}
-			}
-
-			
+			}		
 		}
 		
 		if(showParticles){
-			particles[sp].ctx.fillStyle = COLOURS[sp];
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -490,12 +482,12 @@ function drawWorld(){
 
 	ctx0.clearRect(0,0,width,height);
 
-	ctx0.globalCompositeOperation = 'screen';
+	ctx0.globalCompositeOperation = 'multiply';
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
 	ctx0.drawImage(canvas_bhc, 0, 0);
 	
-	ctx0.globalCompositeOperation = 'multiply';
+	ctx0.globalCompositeOperation = 'screen';
 	ctx0.drawImage(canvas_a, 0, 0);
 	ctx0.drawImage(canvas_b, 0, 0);
 	ctx0.drawImage(canvas_c, 0, 0);
