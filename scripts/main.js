@@ -6,16 +6,19 @@
 const PARTICLE_SIZE = 5; //default particle size in pixels
 const TRI_HEIGHT_FACTOR = Math.sqrt(3)/2;
 const SQU_SIZE_FACTOR = 1;
+
+const COLOURS = {
+	a: 'rgb(255,0,255)',
+	b: 'rgb(255,255,0)',
+	c:'rgb(0,255,255)'	
+}
+
 const COLOUR_A = 'rgb(255,0,255)';
-const COLOUR_B = 'rgb(255,180,100)';
+const COLOUR_B = 'rgb(255,255,0)';
 const COLOUR_C = 'rgb(0,255,255)';
 const WALL_DAMPING = 0.9;
 
-const colours = {
-	a: COLOUR_A,
-	b: COLOUR_B,
-	c: COLOUR_C
-	}
+
 
 //establish canvas contexts and variables
 const canvas0 = document.getElementById('canvas0');
@@ -115,43 +118,36 @@ function constrain(n, min, max){
 
 
 const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
+	this.species = species;
+	if(this.species != 'a' || this.species != 'b' || this.species != 'c'){
+		this.species = 'b';
+	}
 	this.pos = {x: pos_x, y: pos_y};
-	this.vel = {};
-	this.acc = {};
-	this.mass = 1;
-	this.charge = 1;
-    //this.pos.x = pos_x;
-    //this.pos.y = pos_y;
-    this.vel.x = vel_x;
-    this.vel.y = vel_y;
-	this.acc.x = 0;
-	this.acc.y = 0;
+    this.vel = {x: vel_x, y: vel_y};
+	this.acc = {x: 0, y: 0};
 	this.rot = 2*Math.random() - 4;
 	this.ang = 0;
+	this.mass = Particle.prototype.masses[this.species];
+	this.charge = this.charges[this.species];
    	this.walls = true;
-	this.species = species;
 	this.dead = false;
 	this.interactionList = [];
-	
+	this.colour = COLOURS[species];
 
-	
 	switch(this.species){
 		case 'a':
 			this.render = this.render_a;
-			this.colour = COLOUR_A;
 			break;
 		case 'b':
 			this.render = this.render_b;
-			this.colour = COLOUR_B;
 			break;
 		case 'c':
 			this.render = this.render_c;
-			this.colour = COLOUR_C;
+
 			break;
 		default:
 			this.species = 'b';
 			this.render = this.render_b;
-			this.colour = COLOUR_B;
 			break;
 		}	
     return this;
@@ -317,11 +313,20 @@ Particle.prototype = {
 	type: 'particle',
 	label: "",	
 	colour: "rgb(255,255,255)",
-	
+	masses: {
+		a: 1000,
+		b: 1,
+		c: 10
+	},
+	charges: {
+		a: 1,
+		b: 1,
+		c: 1		
+	},
+
+
 	render_a: function(ctx) {  //triangle particles
 		ctx.save();
-        ctx.fillStyle = COLOUR_A;
-		ctx.strokeStyle = COLOUR_A;
 		ctx.lineWidth = 3;
 		let triHeight = Math.round(this.size*TRI_HEIGHT_FACTOR); //find a way to do this only once (when particle is initialised)
 		ctx.translate(this.pos.x, this.pos.y);
@@ -406,6 +411,8 @@ let parts_live = 0;
 drawWorld();
 
 
+ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
+
 function drawWorld(){
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
@@ -447,7 +454,7 @@ function drawWorld(){
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
 			particles[sp].ctx.beginPath();
-			particles[sp].ctx.strokeStyle = colours[sp];
+			particles[sp].ctx.strokeStyle = COLOURS[sp];
 			particles[sp].ctx.rect(box.xMin, box.yMin, box.width, box.height);
 			particles[sp].ctx.stroke();
 
@@ -459,11 +466,11 @@ function drawWorld(){
 				if(thisNode.visible){
 					//TODO - have option for 'filled BHA nodes' or 'wireframe BHA nodes'
 					particles[sp].ctx_bh.beginPath();
-					/*particles[sp].ctx_bh.strokeStyle = colours[sp];
+					/*particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
 					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
 					particles[sp].ctx_bh.stroke();*/
-					particles[sp].ctx_bh.fillStyle = colours[sp];
-					particles[sp].ctx_bh.globalAlpha = thisNode.depth/MAX_DEPTH;
+					particles[sp].ctx_bh.fillStyle = COLOURS[sp];
+					particles[sp].ctx_bh.globalAlpha = (thisNode.depth + thisNode.sub_depth/4)/MAX_DEPTH;
 					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
 					particles[sp].ctx_bh.fill();
 				}
@@ -473,7 +480,7 @@ function drawWorld(){
 		}
 		
 		if(showParticles){
-			particles[sp].ctx.fillStyle = colours[sp];
+			particles[sp].ctx.fillStyle = COLOURS[sp];
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -486,15 +493,22 @@ function drawWorld(){
 			}
 		}
 	} 	
-	//ctx0.globalCompositeOperation = 'source-over';
-	ctx0.clearRect(0,0,width, height);
+
+
+	ctx0.clearRect(0,0,width,height);
+
 	ctx0.globalCompositeOperation = 'screen';
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
 	ctx0.drawImage(canvas_bhc, 0, 0);
+	
+	ctx0.globalCompositeOperation = 'multiply';
 	ctx0.drawImage(canvas_a, 0, 0);
 	ctx0.drawImage(canvas_b, 0, 0);
 	ctx0.drawImage(canvas_c, 0, 0);
+
+	
+
 
 	
 	

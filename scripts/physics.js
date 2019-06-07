@@ -4,9 +4,12 @@ const R_1 = 20; //radius within which force calculations are not performed (avoi
 const R_1_SQ = Math.pow(R_1,2);
 
 
-const MAX_DEPTH = 10; //maximum depth for recursion in building quadtree
+const MAX_DEPTH = 25; //maximum depth for recursion in building quadtree
 const S_D_THRESHOLD = 0.5; //value of s/d below which the CoM of a node can be used for force calculation. S is the width of the node, d is the distance of a particle to the node's CoM.
 const S_D_THRESHOLD_SQ = Math.pow(S_D_THRESHOLD,2);
+const COUPLING_VALUES = [-1000, -500, -100, -50, -10, 0, 10, 50, 100, 500, 1000];
+const MASS_VALUES = [1, 2, 5, 10, 100, 500, 1000, 10000];
+const CHARGE_VALUES = [0, 1, 2, 5, 10, 100, 500, 1000, 10000];
 
 direct_calc = false;
 bha_calc = true;
@@ -20,6 +23,11 @@ let coupling = {
 	c: {a: 20, b: 20, c: 50}
 }
 
+
+
+function convertButtonValue(btnValue, values){
+	return values[btnValue];
+}
 
 
 
@@ -59,18 +67,14 @@ function calculateForce(particle, otherThing, dists){
 
 	let q1 = particle.charge;
 	let q2 = otherThing.charge;
-	
 	let d = Math.sqrt(dists[0]);
-
 	let F_mag = k*q1*q2/dists[0];
 		
 	let F = {
 		x : F_mag*(dists[1]/d),
 		y : F_mag*(dists[2]/d)
 	}
-		
-
-		
+	
 	particle.acc.x += F.x/particle.mass;
 	particle.acc.y += F.y/particle.mass;
 	
@@ -188,6 +192,7 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 
 
 function calculateCoM(particleList){
+	let m = Particle.prototype.masses[particleList.species];
 	let CoM = {x:0, y:0, m:0, q:0};
 	
 	//calculate total mass (and charge, while we're at it)
@@ -276,7 +281,8 @@ function buildTree(species){
 		list: [],
 		CoM: {x:0,y:0,m:0,q:0},
 		charge: 0,
-		depth: 0
+		depth: 0,
+		sub_depth:0
 	}
 	
 	//now cram each particle into the tree structure
@@ -314,6 +320,7 @@ function addParticle(p, node){
 				thisNode.type = 'node';
 				thisNode.list = [];
 				thisNode.depth = node.depth + 1;
+				thisNode.sub_depth = i;
 				switch(i){
 					case 0:
 						thisNode.bounds = {xMin:node.bounds.xMin, xMax: node.bounds.xMin + halfWidth, yMin:node.bounds.yMin, yMax: node.bounds.yMin + halfHeight};

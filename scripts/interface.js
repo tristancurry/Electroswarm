@@ -6,7 +6,9 @@
 
 const SPAWN_ICONS = ['1','🔟','💯'];
 const PLAY_ICONS = ['⏸️','▶️'];
-const COUPLING_ICONS = ['🐸','🐵','🐔','🐨','🐲'];
+const COUPLING_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻','🐟','🐌'];
+const CHARGE_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
+const MASS_ICONS = ['🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
 
 const debugBox = document.getElementsByClassName('debug')[0];
 
@@ -120,15 +122,40 @@ function handleCouplingClicks(event){
 		//update their values together
 		let linkedButtons = couplingGrid.getElementsByClassName(t.classList[t.classList.length - 1]);
 		for(let i = 0, l = linkedButtons.length; i < l; i++){
-			cycleIcon(linkedButtons[i], COUPLING_ICONS);
+			cycleIcon(linkedButtons[i], COUPLING_ICONS);	
 		}
+		let newCoupling = convertButtonValue(t.value, COUPLING_VALUES);
+		let coupleString = t.classList[t.classList.length - 1];
+		let firstLetter = coupleString.slice(0, 1);
+		let lastLetter = coupleString.slice(1);
+		
+		if(firstLetter != lastLetter){
+			coupling[firstLetter][lastLetter] = newCoupling;
+			coupling[lastLetter][firstLetter] = newCoupling;
+		} else {
+			coupling[firstLetter][firstLetter] = newCoupling;
+		}			
+		
 	}
 }
 
 function handlePropertiesClicks(event){
 	let t = event.target;
 	if(t.tagName == 'BUTTON' && !t.disabled){
-		cycleIcon(t, COUPLING_ICONS);
+		switch(t.classList[0]){
+			case 'mass':
+				cycleIcon(t, MASS_ICONS);
+				let newMass = convertButtonValue(t.value, MASS_VALUES);
+				console.log(Particle.prototype.masses);
+				Particle.prototype.masses[t.classList[1]] = newMass;
+				break;
+			
+			case 'charge':
+				cycleIcon(t, CHARGE_ICONS);
+				let newCharge = convertButtonValue(t.value, CHARGE_VALUES);
+				Particle.prototype.charges[t.classList[1]] = newCharge;
+				
+		}
 	}
 }
 

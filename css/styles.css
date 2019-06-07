@@ -40,7 +40,7 @@ button {
 canvas {
 	position: absolute;
 	width:100%;
-	background-image: linear-gradient(to bottom right, #222222, #005555);
+	background-color: black;
 	max-width:800px;
 }
 
