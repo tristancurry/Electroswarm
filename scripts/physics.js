@@ -63,10 +63,21 @@ function calculateForce(particle, otherThing, dists){
 
 	//need distance, and components
 	if(!dists){dists = calculateDistance(particle, otherThing);}
-	let k = coupling[particle.species][otherThing.species];
+	let sp1 = particle.species;
+	let sp2 = otherThing.species;
+	
+	let k = coupling[sp1][sp2];
 
-	let q1 = particle.charge;
-	let q2 = otherThing.charge;
+	let q1 = particle.charges[sp1];
+	let q2 = 0;
+	if(otherThing.type == 'node'){
+		q2 = otherThing.charge;
+	} else {
+		q2 = otherThing.charges[sp2];
+	}
+
+	
+	
 	let d = Math.sqrt(dists[0]);
 	let F_mag = k*q1*q2/dists[0];
 		
@@ -75,12 +86,12 @@ function calculateForce(particle, otherThing, dists){
 		y : F_mag*(dists[2]/d)
 	}
 	
-	particle.acc.x += F.x/particle.mass;
-	particle.acc.y += F.y/particle.mass;
+	particle.acc.x += F.x/particle.masses[sp1];
+	particle.acc.y += F.y/particle.masses[sp1];
 	
 	if(otherThing.type != 'node' && direct_calc){
-		otherThing.acc.x -= F.x/otherThing.mass;
-		otherThing.acc.y -= F.y/otherThing.mass;
+		otherThing.acc.x -= F.x/otherThing.masses[sp2];
+		otherThing.acc.y -= F.y/otherThing.masses[sp2];
 	}	
 }
 
@@ -193,13 +204,13 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 
 function calculateCoM(particleList){
 	let m = Particle.prototype.masses[particleList.species];
+	let m = Particle.prototype.charges[particleList.species];
 	let CoM = {x:0, y:0, m:0, q:0};
 	
 	//calculate total mass (and charge, while we're at it)
-	for(let i = 0, l = particleList.length; i < l; i++){
-		CoM.m += particleList[i].mass;
-		CoM.q += particleList[i].charge;
-	}
+	CoM.m = particleList.length*m;
+	CoM.q = particleList.length*q;
+
 	
 	//centre of mass position = weighted sum of positions (average position of mass)
 	//CoMx =    thisX*(thisMass/TotalMass)
@@ -207,8 +218,8 @@ function calculateCoM(particleList){
 	
 	for(let i = 0, l = particleList.length; i < l; i++){
 		let p = particleList[i];
-		CoM.x += p.pos.x*p.mass;
-		CoM.y += p.pos.y*p.mass;
+		CoM.x += p.pos.x*m;
+		CoM.y += p.pos.y*m;
 	}
 	
 	CoM.x = CoM.x/CoM.m;
