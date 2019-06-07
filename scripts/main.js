@@ -60,8 +60,6 @@ const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
 canvas_bhc.width = canvas0.width;
 canvas_bhc.height = canvas0.height;
 
-
-
 let paused = false;
 
 let nextSelectedSpecies = 'b';
@@ -73,7 +71,8 @@ let showParticles = true;
 let showTree = true;
 let simpleRender = true;
 let showBounding = false;
-
+let newMass = {a: false, b: false, c:false};
+let newCharge = {a: false, b: false, c:false};
 
 let particles = {
 	a: {
@@ -127,7 +126,9 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.ang = 0;
    	this.walls = true;
 	this.dead = false;
-	this.interactionList = [];	
+	this.interactionList = [];
+	this.mass = masses[species];
+	this.charge = charges[species];
     return this;
 };
 
@@ -291,16 +292,7 @@ Particle.prototype = {
 	type: 'particle',
 	label: "",	
 	colour: "rgb(255,255,255)",
-	masses: {
-		a: 1000,
-		b: 1,
-		c: 10
-	},
-	charges: {
-		a: 1,
-		b: 1,
-		c: 1		
-	},
+
 
 
 	render_a: function(ctx) {  //triangle particles
@@ -402,27 +394,46 @@ for(let sp in particles){
 		particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
 		particles[sp].ctx_bh.fillStyle = COLOURS[sp];
 }
+let globalCoM = {x:width/2, y:height/2, m:0, q:0};
+
 drawWorld();
 
 
 ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
 
 function drawWorld(){
+	globalCoM = {x: 0, y: 0, m: 0, q:0};
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
-
+	
 	
 	//cycle through each of the particle lists
 	//and update positions
 	if(!paused){
+
+		//if properties have changed, update all particle masses
+		for(let sp in particles){
+			if(newMass[sp] || newCharge[sp]){
+				for(let i = 0, l = particles[sp].list.length; i < l; i++){
+					let p = particles[sp].list[i];
+					p.charge = charges[sp];
+					p.mass = masses[sp];
+				}
+				newMass[sp] = false;
+				newCharge[sp] = false;
+			}
+		}
+		
+		//if using Barnes-Hut algorithm, build the quadtrees
 		if(bha_calc){
 			for(let sp in particles){
 				buildTree(sp);
 			}
 		}
-
+		
 		doForces();
-		for(let sp in particles){		
+		
+		for(let sp in particles){			
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -434,7 +445,7 @@ function drawWorld(){
 				}
 				
 			}
-		}
+		}	
 	}
 	
 	//cycle through each of the particle list
@@ -465,6 +476,9 @@ function drawWorld(){
 			}		
 		}
 		
+
+		
+		
 		if(showParticles){
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
@@ -477,8 +491,20 @@ function drawWorld(){
 				}
 			}
 		}
-	} 	
+		
+		if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
+			particles[sp].ctx_bh.beginPath();
+			let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
+			particles[sp].ctx_bh.arc(thisCoM.x,thisCoM.y,20,0,2*Math.PI);
+			particles[sp].ctx_bh.globalAlpha = 1;
+			particles[sp].ctx_bh.stroke();
+			globalCoM.x += thisCoM.m*thisCoM.x;
+			globalCoM.y += thisCoM.m*thisCoM.y;
+			globalCoM.m += thisCoM.m;
+			globalCoM.q += thisCoM.q;
+		}
 
+	} 	
 
 	ctx0.clearRect(0,0,width,height);
 
@@ -492,12 +518,20 @@ function drawWorld(){
 	ctx0.drawImage(canvas_b, 0, 0);
 	ctx0.drawImage(canvas_c, 0, 0);
 
-	
+	ctx0.globalCompositeOperation = 'source-over';
+	if(globalCoM.m > 0){
+		globalCoM.x = globalCoM.x/globalCoM.m;
+		globalCoM.y = globalCoM.y/globalCoM.m;
+	} else {
+		globalCoM = {x: 0.5*width, y: 0.5*height, m: 0, q:0};
+	}
 
+	ctx0.strokeStyle = 'rgb(255,255,255)';
+	ctx0.beginPath();
+	ctx0.arc(globalCoM.x,globalCoM.y,35,0,2*Math.PI);
+	ctx0.stroke();
 
-	
-	
-	
+		
 	let thisLoop = new Date();
 	n = (n + 1)%60;
 	if(n == 0){

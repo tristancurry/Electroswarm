@@ -18,9 +18,20 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: -50, b: 50, c: 0},
-	b: {a: 50, b: -50, c: 0},
-	c: {a: 0, b: 0, c: 50}
+	a: {a: 1000, b: -1000, c: 50},
+	b: {a: -1000, b: 1000, c: 50},
+	c: {a: 50, b: 50, c: 250}
+}
+
+let	masses = {
+	a: 10,
+	b: 10,
+	c: 10
+}
+let	charges = {
+	a: 1,
+	b: 1,
+	c: 1		
 }
 
 
@@ -65,43 +76,37 @@ function calculateDistance(particle, otherThing){
 
 
 function calculateForce(particle, otherThing, dists){
-
 	//need distance, and components
-	if(!dists){dists = calculateDistance(particle, otherThing);}
 	let sp1 = particle.species;
 	let sp2 = otherThing.species;
-	
 	let k = coupling[sp1][sp2];
-
-	let q1 = Particle.prototype.charges[sp1];
-	let q2 = 0;
-	if(otherThing.type == 'node'){
-		q2 = otherThing.charge;
-	} else {
-		q2 = Particle.prototype.charges[sp2];
-	}
-
 	
-	
-	let d = Math.sqrt(dists[0]);
-	let F_mag = k*q1*q2/dists[0];
+	if(k != 0){
+		if(!dists){dists = calculateDistance(particle, otherThing);}
+
 		
-	let F = {
-		x : F_mag*(dists[1]/d),
-		y : F_mag*(dists[2]/d)
+
+		let q1 = particle.charge;
+		let	q2 = otherThing.charge;
+		let d = Math.sqrt(dists[0]);
+		let F_mag = k*q1*q2/dists[0];
+	
+		let F = {
+			x : F_mag*(dists[1]/d),
+			y : F_mag*(dists[2]/d)
+		}
+		
+		particle.acc.x += F.x/particle.mass;
+		particle.acc.y += F.y/particle.mass;
+
+		if(otherThing.type != 'node' && direct_calc){
+			otherThing.acc.x -= F.x/otherThing.mass;
+			otherThing.acc.y -= F.y/otherThing.mass;
+		}
 	}
-	
-	particle.acc.x += F.x/Particle.prototype.masses[sp1];
-	particle.acc.y += F.y/Particle.prototype.masses[sp1];
-	
-	if(otherThing.type != 'node' && direct_calc){
-		otherThing.acc.x -= F.x/Particle.prototype.masses[sp2];
-		otherThing.acc.y -= F.y/Particle.prototype.masses[sp2];
-	}	
 }
 
 function doForces(){  //this will be replaced by the BHA force calculations
-	//direct_calc = true;
 	if(direct_calc){
 		//for each particle,
 		//go through own species list
@@ -200,35 +205,32 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 
 
 
-
-
-
-
 //Functions for constructing the quadtree for each particle species
 
 
 function calculateCoM(particleList){
-	let m = Particle.prototype.masses[particleList.species];
-	let q = Particle.prototype.charges[particleList.species];
+
+	let l = particleList.length;
 	let CoM = {x:0, y:0, m:0, q:0};
-	
+
+	let p = particleList[0];
+	CoM.m = p.mass*l;
+	CoM.q = p.charge*l;
 	//calculate total mass (and charge, while we're at it)
-	CoM.m = particleList.length*m;
-	CoM.q = particleList.length*q;
 
 	
 	//centre of mass position = weighted sum of positions (average position of mass)
 	//CoMx =    thisX*(thisMass/TotalMass)
 	//CoMy = 	thisY*(thisMass/TotalMass)
 	
-	for(let i = 0, l = particleList.length; i < l; i++){
+	for(let i = 0; i < l; i++){
 		let p = particleList[i];
-		CoM.x += p.pos.x*m;
-		CoM.y += p.pos.y*m;
+		CoM.x += p.pos.x;
+		CoM.y += p.pos.y;
 	}
 	
-	CoM.x = CoM.x/CoM.m;
-	CoM.y = CoM.y/CoM.m;
+	CoM.x = CoM.x/l;
+	CoM.y = CoM.y/l;
 	
 	return CoM;
 }
