@@ -17,7 +17,27 @@ const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,255,0)';
 const COLOUR_C = 'rgb(0,255,255)';
 
-const WALL_DAMPING = 0.9;
+const WALL_DAMPING = 0.5;
+
+let WALLS = true;
+
+let showCoM = {a:true, b:true, c:true, g:true};
+let FOLLOW_COM = true;
+
+let paused = false;
+
+let nextSelectedSpecies = 'b';
+let selectedSpecies = 'b';
+
+let spawnQuantity = 1;
+
+let showParticles = {a:true, b:true, c:true};
+let showTree = {a:true, b:true, c:true};
+let simpleRender = true;
+let showBounding = false;
+let newMass = {a: false, b: false, c:false};
+let newCharge = {a: false, b: false, c:false};
+
 
 
 
@@ -60,19 +80,7 @@ const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
 canvas_bhc.width = canvas0.width;
 canvas_bhc.height = canvas0.height;
 
-let paused = false;
 
-let nextSelectedSpecies = 'b';
-let selectedSpecies = 'b';
-
-let spawnQuantity = 1;
-
-let showParticles = true;
-let showTree = true;
-let simpleRender = true;
-let showBounding = false;
-let newMass = {a: false, b: false, c:false};
-let newCharge = {a: false, b: false, c:false};
 
 let particles = {
 	a: {
@@ -124,7 +132,6 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.acc = {x: 0, y: 0};
 	this.rot = 2*Math.random() - 4;
 	this.ang = 0;
-   	this.walls = true;
 	this.dead = false;
 	this.interactionList = [];
 	this.mass = masses[species];
@@ -143,7 +150,7 @@ function createParticle(particles_obj){
 	let vel = (10*k*spawnQuantity/r)/60;
 	let velX = -(randY/r)*vel;
 	let velY = (randX/r)*vel
-	let p = new Particle(particles_obj.species, canvas0.width/2 + randX , canvas0.height/2 + randY, velX, velY);
+	let p = new Particle(particles_obj.species, globalCoM.x + randX , globalCoM.y + randY, velX, velY);
 	
 	if(particles_obj.dead){
 	//Make use of 'dead' particles in particle list first, rather than always adding new ones
@@ -368,7 +375,7 @@ Particle.prototype = {
 		this.ang = (this.ang + this.rot)%360;
 		}
 		
-		if(this.walls){
+		if(WALLS){
 			if((this.vel.x  > 0 && this.pos.x  > width) || (this.vel.x  < 0 && this.pos.x < 0)){
 				this.vel.x  = -1*WALL_DAMPING*this.vel.x ;
 				if(this.pos.x > width){this.pos.x = width;} else {this.pos.x = 0;}
@@ -445,7 +452,24 @@ function drawWorld(){
 				}
 				
 			}
-		}	
+			
+			if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
+				let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
+				globalCoM.x += thisCoM.m*thisCoM.x;
+				globalCoM.y += thisCoM.m*thisCoM.y;
+				globalCoM.m += thisCoM.m;
+				globalCoM.q += thisCoM.q;
+			}
+
+		}
+
+		if(globalCoM.m > 0){
+			globalCoM.x = globalCoM.x/globalCoM.m;
+			globalCoM.y = globalCoM.y/globalCoM.m;
+		} else {
+			globalCoM = {x: 0.5*width, y: 0.5*height, m: 0, q:0};
+		}
+			
 	}
 	
 	//cycle through each of the particle list
@@ -455,6 +479,10 @@ function drawWorld(){
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
 
+		particles[sp].ctx.save();
+		particles[sp].ctx_bh.save();
+		particles[sp].ctx.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
+		particles[sp].ctx_bh.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
@@ -464,7 +492,7 @@ function drawWorld(){
 
 		}
 		
-		if(showTree && bha_calc){
+		if(showTree[sp] && bha_calc){
 			for(let i = 0, l = nodeList[sp].length; i < l; i++){
 				let thisNode = nodeList[sp][i];
 				if(thisNode.visible){
@@ -479,7 +507,7 @@ function drawWorld(){
 
 		
 		
-		if(showParticles){
+		if(showParticles[sp]){
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -492,22 +520,28 @@ function drawWorld(){
 			}
 		}
 		
-		if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
+		if(showCoM[sp] && nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
 			particles[sp].ctx_bh.beginPath();
 			let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
 			particles[sp].ctx_bh.arc(thisCoM.x,thisCoM.y,20,0,2*Math.PI);
 			particles[sp].ctx_bh.globalAlpha = 1;
 			particles[sp].ctx_bh.stroke();
-			globalCoM.x += thisCoM.m*thisCoM.x;
-			globalCoM.y += thisCoM.m*thisCoM.y;
-			globalCoM.m += thisCoM.m;
-			globalCoM.q += thisCoM.q;
 		}
-
+		
+				particles[sp].ctx.restore();
+		particles[sp].ctx_bh.restore();
+	
 	} 	
 
 	ctx0.clearRect(0,0,width,height);
 
+	
+	
+
+
+
+	
+	
 	ctx0.globalCompositeOperation = 'multiply';
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
@@ -519,17 +553,25 @@ function drawWorld(){
 	ctx0.drawImage(canvas_c, 0, 0);
 
 	ctx0.globalCompositeOperation = 'source-over';
-	if(globalCoM.m > 0){
-		globalCoM.x = globalCoM.x/globalCoM.m;
-		globalCoM.y = globalCoM.y/globalCoM.m;
-	} else {
-		globalCoM = {x: 0.5*width, y: 0.5*height, m: 0, q:0};
-	}
 
+
+	ctx0.save();
+	ctx0.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 	ctx0.strokeStyle = 'rgb(255,255,255)';
+	
 	ctx0.beginPath();
+	ctx0.lineWidth = 2;
 	ctx0.arc(globalCoM.x,globalCoM.y,35,0,2*Math.PI);
 	ctx0.stroke();
+		if(WALLS){
+		ctx0.strokeStyle = 'rgb(255,255,255)';
+		ctx0.lineWidth = 10;
+		ctx0.beginPath();
+		ctx0.rect(0,0,width, height);
+		ctx0.stroke();
+	}
+	ctx0.restore();
+
 
 		
 	let thisLoop = new Date();

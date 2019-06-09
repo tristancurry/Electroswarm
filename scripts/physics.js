@@ -18,8 +18,8 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: 1000, b: -1000, c: 50},
-	b: {a: -1000, b: 1000, c: 50},
+	a: {a: -1000, b: 1000, c: 50},
+	b: {a: 1000, b: -1000, c: 50},
 	c: {a: 50, b: 50, c: 250}
 }
 
@@ -81,7 +81,7 @@ function calculateForce(particle, otherThing, dists){
 	let sp2 = otherThing.species;
 	let k = coupling[sp1][sp2];
 	
-	if(k != 0){
+	if(k != 0 && particle.charge != 0 && otherThing.charge != 0){
 		if(!dists){dists = calculateDistance(particle, otherThing);}
 
 		

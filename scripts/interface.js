@@ -171,7 +171,9 @@ function handleViewOptionsClicks(event){
 				break;
 
 			case 'chk_showparticles':
-				showParticles = !showParticles;
+				for(let sp in particles){
+					showParticles[sp] = !showParticles[sp];
+				}
 				break;
 				
 			case 'chk_showBounding':
@@ -179,7 +181,9 @@ function handleViewOptionsClicks(event){
 				break;
 			
 			case 'chk_showTree':
-				showTree = !showTree;
+				for(let sp in particles){
+					showTree[sp] = !showTree[sp];
+				}
 				break;
 		}
 	}
