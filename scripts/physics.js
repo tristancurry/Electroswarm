@@ -18,9 +18,20 @@ let nodeList = {a: [], b: [], c: []};
 
 //coupling 'matrix' will be updated via UI
 let coupling = {
-	a: {a: -50, b: 50, c: 20},
-	b: {a: 50, b: -50, c: 20},
-	c: {a: 20, b: 20, c: 50}
+	a: {a: -1000, b: 1000, c: 50},
+	b: {a: 1000, b: -1000, c: 50},
+	c: {a: 50, b: 50, c: 250}
+}
+
+let	masses = {
+	a: 10,
+	b: 10,
+	c: 10
+}
+let	charges = {
+	a: 1,
+	b: 1,
+	c: 1		
 }
 
 
@@ -28,6 +39,11 @@ let coupling = {
 function convertButtonValue(btnValue, values){
 	return values[btnValue];
 }
+
+function convertValueToButton(value, values){
+	return values.indexOf(value);
+}
+
 
 
 
@@ -60,32 +76,37 @@ function calculateDistance(particle, otherThing){
 
 
 function calculateForce(particle, otherThing, dists){
-
 	//need distance, and components
-	if(!dists){dists = calculateDistance(particle, otherThing);}
-	let k = coupling[particle.species][otherThing.species];
+	let sp1 = particle.species;
+	let sp2 = otherThing.species;
+	let k = coupling[sp1][sp2];
+	
+	if(k != 0 && particle.charge != 0 && otherThing.charge != 0){
+		if(!dists){dists = calculateDistance(particle, otherThing);}
 
-	let q1 = particle.charge;
-	let q2 = otherThing.charge;
-	let d = Math.sqrt(dists[0]);
-	let F_mag = k*q1*q2/dists[0];
 		
-	let F = {
-		x : F_mag*(dists[1]/d),
-		y : F_mag*(dists[2]/d)
+
+		let q1 = particle.charge;
+		let	q2 = otherThing.charge;
+		let d = Math.sqrt(dists[0]);
+		let F_mag = k*q1*q2/dists[0];
+	
+		let F = {
+			x : F_mag*(dists[1]/d),
+			y : F_mag*(dists[2]/d)
+		}
+		
+		particle.acc.x += F.x/particle.mass;
+		particle.acc.y += F.y/particle.mass;
+
+		if(otherThing.type != 'node' && direct_calc){
+			otherThing.acc.x -= F.x/otherThing.mass;
+			otherThing.acc.y -= F.y/otherThing.mass;
+		}
 	}
-	
-	particle.acc.x += F.x/particle.mass;
-	particle.acc.y += F.y/particle.mass;
-	
-	if(otherThing.type != 'node' && direct_calc){
-		otherThing.acc.x -= F.x/otherThing.mass;
-		otherThing.acc.y -= F.y/otherThing.mass;
-	}	
 }
 
 function doForces(){  //this will be replaced by the BHA force calculations
-	//direct_calc = true;
 	if(direct_calc){
 		//for each particle,
 		//go through own species list
@@ -184,35 +205,32 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 
 
 
-
-
-
-
 //Functions for constructing the quadtree for each particle species
 
 
 function calculateCoM(particleList){
-	let m = Particle.prototype.masses[particleList.species];
+
+	let l = particleList.length;
 	let CoM = {x:0, y:0, m:0, q:0};
-	
+
+	let p = particleList[0];
+	CoM.m = p.mass*l;
+	CoM.q = p.charge*l;
 	//calculate total mass (and charge, while we're at it)
-	for(let i = 0, l = particleList.length; i < l; i++){
-		CoM.m += particleList[i].mass;
-		CoM.q += particleList[i].charge;
-	}
+
 	
 	//centre of mass position = weighted sum of positions (average position of mass)
 	//CoMx =    thisX*(thisMass/TotalMass)
 	//CoMy = 	thisY*(thisMass/TotalMass)
 	
-	for(let i = 0, l = particleList.length; i < l; i++){
+	for(let i = 0; i < l; i++){
 		let p = particleList[i];
-		CoM.x += p.pos.x*p.mass;
-		CoM.y += p.pos.y*p.mass;
+		CoM.x += p.pos.x;
+		CoM.y += p.pos.y;
 	}
 	
-	CoM.x = CoM.x/CoM.m;
-	CoM.y = CoM.y/CoM.m;
+	CoM.x = CoM.x/l;
+	CoM.y = CoM.y/l;
 	
 	return CoM;
 }
@@ -316,7 +334,6 @@ function addParticle(p, node){
 				let thisNode = node.nodes[i];
 				thisNode.species = p.species;
 				thisNode.visible = true;
-				nodeList[p.species].push(thisNode);
 				thisNode.type = 'node';
 				thisNode.list = [];
 				thisNode.depth = node.depth + 1;
@@ -343,7 +360,7 @@ function addParticle(p, node){
 				
 				thisNode.bounds.width = thisNode.bounds.xMax - thisNode.bounds.xMin;
 				thisNode.bounds.height = thisNode.bounds.yMax - thisNode.bounds.yMin;
-				
+				nodeList[p.species].push(thisNode);
 			}
 			
 			//see which node a particle should go into, then try to put it into that node.

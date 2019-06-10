@@ -10,13 +10,34 @@ const SQU_SIZE_FACTOR = 1;
 const COLOURS = {
 	a: 'rgb(255,0,255)',
 	b: 'rgb(255,255,0)',
-	c:'rgb(0,255,255)'	
+	c: 'rgb(0,255,255)'	
 }
 
 const COLOUR_A = 'rgb(255,0,255)';
 const COLOUR_B = 'rgb(255,255,0)';
 const COLOUR_C = 'rgb(0,255,255)';
-const WALL_DAMPING = 0.9;
+
+const WALL_DAMPING = 0.5;
+
+let WALLS = true;
+
+let showCoM = {a:true, b:true, c:true, g:true};
+let FOLLOW_COM = true;
+
+let paused = false;
+
+let nextSelectedSpecies = 'b';
+let selectedSpecies = 'b';
+
+let spawnQuantity = 1;
+
+let showParticles = {a:true, b:true, c:true};
+let showTree = {a:true, b:true, c:true};
+let simpleRender = true;
+let showBounding = false;
+let newMass = {a: false, b: false, c:false};
+let newCharge = {a: false, b: false, c:false};
+
 
 
 
@@ -59,19 +80,6 @@ const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
 canvas_bhc.width = canvas0.width;
 canvas_bhc.height = canvas0.height;
 
-
-
-let paused = false;
-
-let nextSelectedSpecies = 'b';
-let selectedSpecies = 'b';
-
-let spawnQuantity = 1;
-
-let showParticles = true;
-let showTree = true;
-let simpleRender = true;
-let showBounding = false;
 
 
 let particles = {
@@ -119,37 +127,15 @@ function constrain(n, min, max){
 
 const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.species = species;
-	if(this.species != 'a' || this.species != 'b' || this.species != 'c'){
-		this.species = 'b';
-	}
 	this.pos = {x: pos_x, y: pos_y};
     this.vel = {x: vel_x, y: vel_y};
 	this.acc = {x: 0, y: 0};
 	this.rot = 2*Math.random() - 4;
 	this.ang = 0;
-	this.mass = Particle.prototype.masses[this.species];
-	this.charge = this.charges[this.species];
-   	this.walls = true;
 	this.dead = false;
 	this.interactionList = [];
-	this.colour = COLOURS[species];
-
-	switch(this.species){
-		case 'a':
-			this.render = this.render_a;
-			break;
-		case 'b':
-			this.render = this.render_b;
-			break;
-		case 'c':
-			this.render = this.render_c;
-
-			break;
-		default:
-			this.species = 'b';
-			this.render = this.render_b;
-			break;
-		}	
+	this.mass = masses[species];
+	this.charge = charges[species];
     return this;
 };
 
@@ -164,7 +150,7 @@ function createParticle(particles_obj){
 	let vel = (10*k*spawnQuantity/r)/60;
 	let velX = -(randY/r)*vel;
 	let velY = (randX/r)*vel
-	let p = new Particle(particles_obj.species, canvas0.width/2 + randX , canvas0.height/2 + randY, velX, velY);
+	let p = new Particle(particles_obj.species, globalCoM.x + randX , globalCoM.y + randY, velX, velY);
 	
 	if(particles_obj.dead){
 	//Make use of 'dead' particles in particle list first, rather than always adding new ones
@@ -313,16 +299,7 @@ Particle.prototype = {
 	type: 'particle',
 	label: "",	
 	colour: "rgb(255,255,255)",
-	masses: {
-		a: 1000,
-		b: 1,
-		c: 10
-	},
-	charges: {
-		a: 1,
-		b: 1,
-		c: 1		
-	},
+
 
 
 	render_a: function(ctx) {  //triangle particles
@@ -341,36 +318,46 @@ Particle.prototype = {
 		ctx.restore();
 	},
 	
-	render_b: function(ctx) {  //circle particles
+	render: function(ctx) {
 		ctx.save();
 		ctx.lineWidth = 3;
-		ctx.translate(this.pos.x, this.pos.y)
-		ctx.beginPath();
-		ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+		ctx.translate(this.pos.x, this.pos.y);
+		switch(this.species){
+			case 'a':
+				ctx.beginPath();
+				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				break;
+			
+			case 'b':
+				ctx.beginPath();
+				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				break;
+				
+			case 'c':
+				ctx.rotate(2*Math.PI*(this.ang + 45)/360);
+				ctx.beginPath();
+				ctx.rect(-0.5*SQU_SIZE_FACTOR*this.size, -0.5*SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size);
+				break;
+				
+			default:
+				ctx.beginPath();
+				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				break;
+		}
 		ctx.fill();
 		ctx.restore();
 	},
 		
-	render_c: function(ctx) {//diamond particles
-		ctx.save();
-		ctx.lineWidth = 3;
-		ctx.translate(this.pos.x, this.pos.y);
-		ctx.rotate(2*Math.PI*(this.ang + 45)/360);
-		ctx.beginPath();
-		ctx.rect(-0.5*SQU_SIZE_FACTOR*this.size, -0.5*SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size, SQU_SIZE_FACTOR*this.size);
-		ctx.fill();
-		//ctx.stroke();
-		ctx.restore();
-	},
+
+
 	
-		render_d: function(ctx) {//most basic shape
+	render_simple: function(ctx) {//most basic shape
 		ctx.save();
 		ctx.lineWidth = 3;
 		ctx.translate(this.pos.x, this.pos.y);
 		ctx.beginPath();
 		ctx.rect(-0.5*this.size, -0.5*this.size, this.size, this.size);
 		ctx.fill();
-		//ctx.stroke();
 		ctx.restore();
 	},
 	
@@ -388,7 +375,7 @@ Particle.prototype = {
 		this.ang = (this.ang + this.rot)%360;
 		}
 		
-		if(this.walls){
+		if(WALLS){
 			if((this.vel.x  > 0 && this.pos.x  > width) || (this.vel.x  < 0 && this.pos.x < 0)){
 				this.vel.x  = -1*WALL_DAMPING*this.vel.x ;
 				if(this.pos.x > width){this.pos.x = width;} else {this.pos.x = 0;}
@@ -408,29 +395,52 @@ Particle.prototype = {
 let lastLoop = new Date();
 let n = 0;
 let parts_live = 0;
+for(let sp in particles){
+		particles[sp].ctx.strokeStyle = COLOURS[sp];
+		particles[sp].ctx.fillStyle = COLOURS[sp];
+		particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
+		particles[sp].ctx_bh.fillStyle = COLOURS[sp];
+}
+let globalCoM = {x:width/2, y:height/2, m:0, q:0};
+
 drawWorld();
 
 
 ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
 
 function drawWorld(){
+	globalCoM = {x: 0, y: 0, m: 0, q:0};
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
-
+	
 	
 	//cycle through each of the particle lists
 	//and update positions
 	if(!paused){
+
+		//if properties have changed, update all particle masses
+		for(let sp in particles){
+			if(newMass[sp] || newCharge[sp]){
+				for(let i = 0, l = particles[sp].list.length; i < l; i++){
+					let p = particles[sp].list[i];
+					p.charge = charges[sp];
+					p.mass = masses[sp];
+				}
+				newMass[sp] = false;
+				newCharge[sp] = false;
+			}
+		}
+		
+		//if using Barnes-Hut algorithm, build the quadtrees
 		if(bha_calc){
 			for(let sp in particles){
 				buildTree(sp);
 			}
 		}
-
+		
 		doForces();
-		for(let sp in particles){
-
-			
+		
+		for(let sp in particles){			
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
@@ -442,7 +452,24 @@ function drawWorld(){
 				}
 				
 			}
+			
+			if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
+				let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
+				globalCoM.x += thisCoM.m*thisCoM.x;
+				globalCoM.y += thisCoM.m*thisCoM.y;
+				globalCoM.m += thisCoM.m;
+				globalCoM.q += thisCoM.q;
+			}
+
 		}
+
+		if(globalCoM.m > 0){
+			globalCoM.x = globalCoM.x/globalCoM.m;
+			globalCoM.y = globalCoM.y/globalCoM.m;
+		} else {
+			globalCoM = {x: 0.5*width, y: 0.5*height, m: 0, q:0};
+		}
+			
 	}
 	
 	//cycle through each of the particle list
@@ -451,68 +478,102 @@ function drawWorld(){
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
+
+		particles[sp].ctx.save();
+		particles[sp].ctx_bh.save();
+		particles[sp].ctx.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
+		particles[sp].ctx_bh.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
+		
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
 			particles[sp].ctx.beginPath();
-			particles[sp].ctx.strokeStyle = COLOURS[sp];
 			particles[sp].ctx.rect(box.xMin, box.yMin, box.width, box.height);
 			particles[sp].ctx.stroke();
 
 		}
 		
-		if(showTree && bha_calc){
+		if(showTree[sp] && bha_calc){
 			for(let i = 0, l = nodeList[sp].length; i < l; i++){
 				let thisNode = nodeList[sp][i];
 				if(thisNode.visible){
-					//TODO - have option for 'filled BHA nodes' or 'wireframe BHA nodes'
 					particles[sp].ctx_bh.beginPath();
-					/*particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
-					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
-					particles[sp].ctx_bh.stroke();*/
-					particles[sp].ctx_bh.fillStyle = COLOURS[sp];
 					particles[sp].ctx_bh.globalAlpha = (thisNode.depth + thisNode.sub_depth/4)/MAX_DEPTH;
 					particles[sp].ctx_bh.rect(thisNode.bounds.xMin, thisNode.bounds.yMin, thisNode.bounds.width, thisNode.bounds.height);
 					particles[sp].ctx_bh.fill();
 				}
-			}
-
-			
+			}		
 		}
 		
-		if(showParticles){
-			particles[sp].ctx.fillStyle = COLOURS[sp];
+
+		
+		
+		if(showParticles[sp]){
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
 				if(!p.dead){
 					if(simpleRender){
-						p.render_d(particles[sp].ctx);
+						p.render_simple(particles[sp].ctx);
 					} else {
 						p.render(particles[sp].ctx);
 					}
 				}
 			}
 		}
+		
+		if(showCoM[sp] && nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
+			particles[sp].ctx_bh.beginPath();
+			let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
+			particles[sp].ctx_bh.arc(thisCoM.x,thisCoM.y,20,0,2*Math.PI);
+			particles[sp].ctx_bh.globalAlpha = 1;
+			particles[sp].ctx_bh.stroke();
+		}
+		
+				particles[sp].ctx.restore();
+		particles[sp].ctx_bh.restore();
+	
 	} 	
-
 
 	ctx0.clearRect(0,0,width,height);
 
-	ctx0.globalCompositeOperation = 'screen';
+	
+	
+
+
+
+	
+	
+	ctx0.globalCompositeOperation = 'multiply';
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
 	ctx0.drawImage(canvas_bhc, 0, 0);
 	
-	ctx0.globalCompositeOperation = 'multiply';
+	ctx0.globalCompositeOperation = 'screen';
 	ctx0.drawImage(canvas_a, 0, 0);
 	ctx0.drawImage(canvas_b, 0, 0);
 	ctx0.drawImage(canvas_c, 0, 0);
 
-	
+	ctx0.globalCompositeOperation = 'source-over';
 
 
+	ctx0.save();
+	ctx0.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
+	ctx0.strokeStyle = 'rgb(255,255,255)';
 	
-	
-	
+	ctx0.beginPath();
+	ctx0.lineWidth = 2;
+	ctx0.arc(globalCoM.x,globalCoM.y,35,0,2*Math.PI);
+	ctx0.stroke();
+		if(WALLS){
+		ctx0.strokeStyle = 'rgb(255,255,255)';
+		ctx0.lineWidth = 10;
+		ctx0.beginPath();
+		ctx0.rect(0,0,width, height);
+		ctx0.stroke();
+	}
+	ctx0.restore();
+
+
+		
 	let thisLoop = new Date();
 	n = (n + 1)%60;
 	if(n == 0){

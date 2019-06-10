@@ -142,19 +142,22 @@ function handleCouplingClicks(event){
 function handlePropertiesClicks(event){
 	let t = event.target;
 	if(t.tagName == 'BUTTON' && !t.disabled){
+		let sp = t.classList[1]
 		switch(t.classList[0]){
 			case 'mass':
 				cycleIcon(t, MASS_ICONS);
-				let newMass = convertButtonValue(t.value, MASS_VALUES);
-				console.log(Particle.prototype.masses);
-				Particle.prototype.masses[t.classList[1]] = newMass;
+				let m_new = convertButtonValue(t.value, MASS_VALUES);
+				masses[sp] = m_new;
+				newMass[sp] = true; //line up the species for a charge update in next frame
 				break;
 			
 			case 'charge':
 				cycleIcon(t, CHARGE_ICONS);
-				let newCharge = convertButtonValue(t.value, CHARGE_VALUES);
-				Particle.prototype.charges[t.classList[1]] = newCharge;
-				
+				let q_new = convertButtonValue(t.value, CHARGE_VALUES);
+				charges[sp] = q_new;
+				newCharge[sp] = true; //line up the species for a charge update in next frame
+				console.log(newCharge);
+				break;
 		}
 	}
 }
@@ -168,7 +171,9 @@ function handleViewOptionsClicks(event){
 				break;
 
 			case 'chk_showparticles':
-				showParticles = !showParticles;
+				for(let sp in particles){
+					showParticles[sp] = !showParticles[sp];
+				}
 				break;
 				
 			case 'chk_showBounding':
@@ -176,7 +181,9 @@ function handleViewOptionsClicks(event){
 				break;
 			
 			case 'chk_showTree':
-				showTree = !showTree;
+				for(let sp in particles){
+					showTree[sp] = !showTree[sp];
+				}
 				break;
 		}
 	}
