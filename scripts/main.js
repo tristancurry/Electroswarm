@@ -80,7 +80,11 @@ const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
 canvas_bhc.width = canvas0.width;
 canvas_bhc.height = canvas0.height;
 
-
+const canvas_p = document.createElement('canvas');
+const ctx_p = canvas_p.getContext('2d', {alpha:false});
+ctx0.imageSmoothingEnabled = false;
+canvas_p.width = 128;
+canvas_p.height = 128;
 
 let particles = {
 	a: {
@@ -409,10 +413,11 @@ drawWorld();
 ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
 
 function drawWorld(){
+					ctx_p.clearRect(0,0,canvas_p.width, canvas_p.height);
 	globalCoM = {x: 0, y: 0, m: 0, q:0};
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
-	
+
 	
 	//cycle through each of the particle lists
 	//and update positions
@@ -452,6 +457,8 @@ function drawWorld(){
 				}
 				
 			}
+			
+			calculateFields(sp);
 			
 			if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
 				let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
@@ -554,6 +561,7 @@ function drawWorld(){
 
 	ctx0.globalCompositeOperation = 'source-over';
 
+	ctx0.drawImage(canvas_p, 0, 0, width, height);
 
 	ctx0.save();
 	ctx0.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);

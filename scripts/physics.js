@@ -389,8 +389,51 @@ function addParticle(p, node){
 	}
 }
 
+//function for calculating field intensities - could be expensive...
 
- 
+ function calculateFields (species){
+	let list = nodeList[species][nodeList[species].length - 1].list; //get the trunk node, it contains all living particles of that species (BHA ONLY)
+	let ratio = canvas0.width/canvas_p.width; //sets the equivalence between positions on both canvases
+	let imageData = ctx_p.getImageData(0,0, canvas_p.width, canvas_p.height);
+	if(list.length > 0){
+		for(let i = 0, l = imageData.data.length; i < l; i+=4){
+			let pixel = {pos: {x: ratio*((i/4)%canvas_p.height), y: ratio*Math.floor((i/4)/canvas_p.width)}}
+			let field = 0;
+			for(let j = 0, s = list.length; j < s; j++){
+				let p = list[j];
+
+				let dists = calculateDistance(pixel, p);
+				field += 100000*p.charge/dists[0];
+			}
+			
+			field = constrain(field, 0, 255);
+			//Red channel
+			
+				if(species == 'a'){
+					imageData.data[i] += field;
+					imageData.data[i+1] += 0;
+					imageData.data[i+2] += field;
+				}
+				
+				if(species == 'b'){
+					imageData.data[i] += field;
+					imageData.data[i+1] += field;
+					imageData.data[i+2] += 0;
+				}
+				
+				if(species == 'c'){
+					imageData.data[i] += 0;
+					imageData.data[i+1] += field;
+					imageData.data[i+2] += field;
+				}
+				imageData.data[i+3] = 255;
+			
+
+		}
+		
+		ctx_p.putImageData(imageData,0,0);
+	}	
+ }
 
 
 
