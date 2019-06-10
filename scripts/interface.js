@@ -156,7 +156,6 @@ function handlePropertiesClicks(event){
 				let q_new = convertButtonValue(t.value, CHARGE_VALUES);
 				charges[sp] = q_new;
 				newCharge[sp] = true; //line up the species for a charge update in next frame
-				console.log(newCharge);
 				break;
 		}
 	}

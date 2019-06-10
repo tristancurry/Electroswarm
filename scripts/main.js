@@ -45,7 +45,7 @@ let newCharge = {a: false, b: false, c:false};
 const canvas0 = document.getElementById('canvas0');
 const ctx0 = canvas0.getContext('2d');
 //ctx0.globalCompositeOperation = 'screen';
-
+ctx0.imageSmoothingEnabled = false;
 const height = canvas0.height;
 const width = canvas0.width;
 
@@ -80,11 +80,11 @@ const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
 canvas_bhc.width = canvas0.width;
 canvas_bhc.height = canvas0.height;
 
-const canvas_p = document.createElement('canvas');
-const ctx_p = canvas_p.getContext('2d', {alpha:false});
-ctx0.imageSmoothingEnabled = false;
-canvas_p.width = 128;
-canvas_p.height = 128;
+const canvas_f = document.createElement('canvas');
+const ctx_f = canvas_f.getContext('2d', {alpha:false});
+
+canvas_f.width = canvas0.width;
+canvas_f.height = canvas0.height;
 
 let particles = {
 	a: {
@@ -413,7 +413,6 @@ drawWorld();
 ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
 
 function drawWorld(){
-					ctx_p.clearRect(0,0,canvas_p.width, canvas_p.height);
 	globalCoM = {x: 0, y: 0, m: 0, q:0};
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
@@ -458,7 +457,7 @@ function drawWorld(){
 				
 			}
 			
-			calculateFields(sp);
+			
 			
 			if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
 				let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
@@ -476,7 +475,8 @@ function drawWorld(){
 		} else {
 			globalCoM = {x: 0.5*width, y: 0.5*height, m: 0, q:0};
 		}
-			
+		
+
 	}
 	
 	//cycle through each of the particle list
@@ -485,12 +485,12 @@ function drawWorld(){
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
-
-		particles[sp].ctx.save();
+		particles[sp].ctx.save();	
 		particles[sp].ctx_bh.save();
+
 		particles[sp].ctx.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		particles[sp].ctx_bh.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
-		
+		ctx_f.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
 			particles[sp].ctx.beginPath();
@@ -535,20 +535,20 @@ function drawWorld(){
 			particles[sp].ctx_bh.stroke();
 		}
 		
-				particles[sp].ctx.restore();
+		particles[sp].ctx.restore();
 		particles[sp].ctx_bh.restore();
+		
 	
 	} 	
 
+	let fp = updateField('b', 32, globalCoM);	
+	ctx_f.clearRect(0,0,width,height);
+	//ctx_f.save();
+	//ctx_f.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
+
+	//ctx_f.restore();
+
 	ctx0.clearRect(0,0,width,height);
-
-	
-	
-
-
-
-	
-	
 	ctx0.globalCompositeOperation = 'multiply';
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
@@ -560,9 +560,8 @@ function drawWorld(){
 	ctx0.drawImage(canvas_c, 0, 0);
 
 	ctx0.globalCompositeOperation = 'source-over';
-
-	ctx0.drawImage(canvas_p, 0, 0, width, height);
-
+	ctx0.drawImage(canvas_f, 0, 0);
+		drawField(fp, ctx0);
 	ctx0.save();
 	ctx0.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 	ctx0.strokeStyle = 'rgb(255,255,255)';

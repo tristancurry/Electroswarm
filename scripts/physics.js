@@ -389,9 +389,10 @@ function addParticle(p, node){
 	}
 }
 
-//function for calculating field intensities - could be expensive...
-
- function calculateFields (species){
+//function for calculating field intensities - could be expensive.
+//TODO - work out how to make this move when following CoM.
+/*
+ function calculateFieldStrength (species){
 	let list = nodeList[species][nodeList[species].length - 1].list; //get the trunk node, it contains all living particles of that species (BHA ONLY)
 	let ratio = canvas0.width/canvas_p.width; //sets the equivalence between positions on both canvases
 	let imageData = ctx_p.getImageData(0,0, canvas_p.width, canvas_p.height);
@@ -406,6 +407,7 @@ function addParticle(p, node){
 				field += 100000*p.charge/dists[0];
 			}
 			
+			field = field/3;
 			field = constrain(field, 0, 255);
 			//Red channel
 			
@@ -435,5 +437,77 @@ function addParticle(p, node){
 	}	
  }
 
+*/
 
+function updateField(species, res, gCoM) { //calculates direction and strength of field for a selected species, to a selected resolution
+		let fieldPoints = [];
+	
+		let offset = {x: gCoM.x - 0.5*width, y: gCoM.y - 0.5*height};
+		
 
+		for(let i = 0, w = (width/res); i < w; i++){
+			for(let j = 0, h = (height/res); j < h; j++){
+				let posX = (i + 0.5)*res;
+				let posY = (j + 0.5)*res;
+				let pnt = {
+					dPos:{x:posX, y:posY},
+					pos:{x:posX + offset.x, y:posY + offset.y},
+					comps: {x:0, y:0},
+					species: species,
+					mag: 0,
+					res: res
+				}
+				for(sp in particles){
+					let list = nodeList[sp][nodeList[sp].length - 1].list;  //particle list of trunk node - contains all living particles (BHA only)
+					for(let k = 0, l = list.length; k < l; k++){
+						let p = list[k];
+						dists =	calculateDistance(p, pnt);
+
+						
+						let coup = coupling[species][p.species];
+						if(coup != 0){
+							let d = Math.sqrt(dists[0]);
+							let E_mag = coup*p.charge/dists[0];
+							pnt.comps.x += E_mag*(dists[1]/d);
+							pnt.comps.y += E_mag*(dists[2]/d);
+						}
+						//for each point in the 'grid'
+						//calculate the strength of the field for a particle of this species, charge = 1;
+						//calculate the components
+						//normalise components to length unity
+						//return a list of locations, with a strength and direction components
+					}
+				}
+					pnt.mag = Math.sqrt((pnt.comps.x * pnt.comps.x) + (pnt.comps.y * pnt.comps.y));
+					pnt.comps.x = pnt.comps.x/pnt.mag;
+					pnt.comps.y = pnt.comps.y/pnt.mag;
+					fieldPoints.push(pnt);
+			}
+		}
+	
+
+	return fieldPoints;
+}
+
+function drawField(fieldPoints, ctx) {
+	//go to each point in fieldPoints, and draw an arrow there. Transparency reflects the field strength
+	if(fieldPoints.length > 0){
+	for (let i = 0, l = fieldPoints.length; i < l; i++){
+		let pnt = fieldPoints[i];
+		ctx.save();
+		ctx.translate(pnt.dPos.x, pnt.dPos.y);
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = COLOURS[pnt.species];
+		ctx.globalAlpha = 5*pnt.mag;
+		ctx.beginPath();
+		ctx.moveTo(0.35*pnt.res*pnt.comps.x, 0.35*pnt.res*pnt.comps.y);
+		ctx.lineTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
+		ctx.lineTo(-0.2*pnt.res*pnt.comps.x - 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y + 0.2*pnt.res*pnt.comps.x);
+		ctx.moveTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
+		ctx.lineTo(-0.2*pnt.res*pnt.comps.x + 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y - 0.2*pnt.res*pnt.comps.x);
+		ctx.stroke();
+		ctx.restore();
+	}
+
+	}
+}
