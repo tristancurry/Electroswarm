@@ -37,6 +37,7 @@ let simpleRender = true;
 let showBounding = false;
 let newMass = {a: false, b: false, c:false};
 let newCharge = {a: false, b: false, c:false};
+let showFields = {a: false, b: true, c: false};
 
 
 
@@ -485,9 +486,9 @@ function drawWorld(){
 	for(let sp in particles){
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
-		particles[sp].ctx.save();	
+		particles[sp].ctx.save();
 		particles[sp].ctx_bh.save();
-
+			
 		particles[sp].ctx.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		particles[sp].ctx_bh.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		ctx_f.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
@@ -534,21 +535,13 @@ function drawWorld(){
 			particles[sp].ctx_bh.globalAlpha = 1;
 			particles[sp].ctx_bh.stroke();
 		}
-		
 		particles[sp].ctx.restore();
 		particles[sp].ctx_bh.restore();
-		
-	
-	} 	
-
-	let fp = updateField('b', 32, globalCoM);	
-	ctx_f.clearRect(0,0,width,height);
-	//ctx_f.save();
-	//ctx_f.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
-
-	//ctx_f.restore();
+	}
 
 	ctx0.clearRect(0,0,width,height);
+
+	
 	ctx0.globalCompositeOperation = 'multiply';
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
@@ -558,10 +551,16 @@ function drawWorld(){
 	ctx0.drawImage(canvas_a, 0, 0);
 	ctx0.drawImage(canvas_b, 0, 0);
 	ctx0.drawImage(canvas_c, 0, 0);
-
+	for(let sp in particles){
+		if(showFields[sp]){
+			let fp = updateField(sp, 48, globalCoM);
+			drawField(fp, ctx0);
+		}
+	}
+	
 	ctx0.globalCompositeOperation = 'source-over';
-	ctx0.drawImage(canvas_f, 0, 0);
-		drawField(fp, ctx0);
+	
+	
 	ctx0.save();
 	ctx0.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 	ctx0.strokeStyle = 'rgb(255,255,255)';

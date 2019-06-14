@@ -492,22 +492,24 @@ function updateField(species, res, gCoM) { //calculates direction and strength o
 function drawField(fieldPoints, ctx) {
 	//go to each point in fieldPoints, and draw an arrow there. Transparency reflects the field strength
 	if(fieldPoints.length > 0){
-	for (let i = 0, l = fieldPoints.length; i < l; i++){
-		let pnt = fieldPoints[i];
-		ctx.save();
-		ctx.translate(pnt.dPos.x, pnt.dPos.y);
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = COLOURS[pnt.species];
-		ctx.globalAlpha = 5*pnt.mag;
-		ctx.beginPath();
-		ctx.moveTo(0.35*pnt.res*pnt.comps.x, 0.35*pnt.res*pnt.comps.y);
-		ctx.lineTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
-		ctx.lineTo(-0.2*pnt.res*pnt.comps.x - 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y + 0.2*pnt.res*pnt.comps.x);
-		ctx.moveTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
-		ctx.lineTo(-0.2*pnt.res*pnt.comps.x + 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y - 0.2*pnt.res*pnt.comps.x);
-		ctx.stroke();
-		ctx.restore();
-	}
+		for (let i = 0, l = fieldPoints.length; i < l; i++){
+			let pnt = fieldPoints[i];
+			ctx.save();
+			ctx.translate(pnt.dPos.x, pnt.dPos.y);
+			ctx.setTransform(1,0,0,1,pnt.dPos.x, pnt.dPos.y);
+			ctx.lineWidth = 1;
+			ctx.strokeStyle = COLOURS[pnt.species];
+			ctx.globalAlpha = 5*pnt.mag;
+			ctx.beginPath();
+			ctx.moveTo(0.35*pnt.res*pnt.comps.x, 0.35*pnt.res*pnt.comps.y);
+			ctx.lineTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
+			ctx.lineTo(-0.2*pnt.res*pnt.comps.x - 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y + 0.2*pnt.res*pnt.comps.x);
+			ctx.moveTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
+			ctx.lineTo(-0.2*pnt.res*pnt.comps.x + 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y - 0.2*pnt.res*pnt.comps.x);
+			ctx.stroke();
 
+			ctx.restore();
+		}
+	
 	}
 }

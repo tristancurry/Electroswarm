@@ -67,6 +67,22 @@ controls.addEventListener('click', function(event){
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
 				break;
 				
+			case 'btn_fields':
+				if(!showFields['a'] && !showFields['b'] && !showFields['c']){
+					showFields['a'] = true;
+				} else {
+					for (let sp in particles){
+						if(showFields[sp] == true){
+							showFields[sp] = false;
+							if(sp == 'a'){showFields['b'] = true;}
+							if(sp == 'b'){showFields['c'] = true;}
+							break;
+						}
+					}
+				}
+				console.log(showFields);
+				break;
+				
 				
 			case 'btn_viewoptions':
 				toggleDisplay(document.getElementsByClassName('viewoptions')[0]);
