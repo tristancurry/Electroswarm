@@ -99,7 +99,7 @@ function calculateForce(particle, otherThing, dists){
 		particle.acc.x += F.x/particle.mass;
 		particle.acc.y += F.y/particle.mass;
 
-		if(otherThing.type != 'node' && direct_calc){
+		if(otherThing.type == 'particle'){
 			otherThing.acc.x -= F.x/otherThing.mass;
 			otherThing.acc.y -= F.y/otherThing.mass;
 		}
@@ -116,7 +116,7 @@ function doForces(){  //this will be replaced by the BHA force calculations
 			for(let i = 0, l = list.length; i < l; i++){
 				let thisP = list[i];
 				if(!thisP.dead){
-					for(let j = 1; j < l; j++){
+					for(let j = i; j < l; j++){
 						if(i != j){
 							let thatP = list[j];
 							if(!thatP.dead){
@@ -126,8 +126,31 @@ function doForces(){  //this will be replaced by the BHA force calculations
 					}
 				}
 			}	
+		} //this is all of the intra-species interactions. Now for inter-species...
+		//only need to do A-B, A-C and B-C
+		for(let sp in particles){
+			if(sp == 'a' || sp == 'b'){
+				let list = particles[sp].list;
+				for(let ps in particles){
+					if(ps != sp && ps != 'a'){
+						let list2 = particles[ps].list;
+						for(let i = 0, l = list.length; i < l; i++){
+							let thisP = list[i];
+							if(!thisP.dead){
+								for(let j = 0, l2 = list2.length; j < l2; j++){
+									let thatP = list2[j];
+									if(!thatP.dead && thisP != thatP){
+										calculateForce(thisP, thatP);
+									}
+								}
+							}
+							
+						}
+					}
+				}
+			}	
 		}
-		//TODO: go through each other species' lists
+		
 	} else
 		
 	if(bha_calc){
@@ -190,9 +213,11 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 							//console.log('reached bottom of nodes');
 							let p = node.list[i];
 							if(p != particle){
-								let dists = calculateDistance(particle, p);
-								let pack = {thing: p, dists: dists};
-								particle.interactionList.push(pack);
+								if(particle.species == 'a' || (particle.species == 'b' && p.species != 'a')|| (particle.species == 'c' && p.species == 'c')){
+									let dists = calculateDistance(particle, p);
+									let pack = {thing: p, dists: dists};
+									particle.interactionList.push(pack);
+								}
 							}
 						}
 					}	

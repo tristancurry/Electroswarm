@@ -500,7 +500,7 @@ function drawWorld(){
 
 		}
 		
-		if(showTree[sp] && bha_calc){
+		if(showTree[sp] && bha_calc && MAX_DEPTH > 0){
 			for(let i = 0, l = nodeList[sp].length; i < l; i++){
 				let thisNode = nodeList[sp][i];
 				if(thisNode.visible){
