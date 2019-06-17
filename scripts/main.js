@@ -18,6 +18,8 @@ const COLOUR_B = 'rgb(255,255,0)';
 const COLOUR_C = 'rgb(0,255,255)';
 
 const WALL_DAMPING = 0.5;
+const WALL_WIDTH = 512;
+const WALL_HEIGHT = 512;
 
 let WALLS = true;
 
@@ -152,7 +154,7 @@ function createParticle(particles_obj){
 	let randY = 2*spreadY*Math.random() - spreadY;
 	let k = coupling[particles_obj.species][particles_obj.species];
 	let r = Math.sqrt(randX*randX  + randY*randY);
-	let vel = (10*k*spawnQuantity/r)/60;
+	let vel = (5*k*spawnQuantity/r)/60;
 	let velX = -(randY/r)*vel;
 	let velY = (randX/r)*vel
 	let p = new Particle(particles_obj.species, globalCoM.x + randX , globalCoM.y + randY, velX, velY);
@@ -307,21 +309,6 @@ Particle.prototype = {
 
 
 
-	render_a: function(ctx) {  //triangle particles
-		ctx.save();
-		ctx.lineWidth = 3;
-		let triHeight = Math.round(this.size*TRI_HEIGHT_FACTOR); //find a way to do this only once (when particle is initialised)
-		ctx.translate(this.pos.x, this.pos.y);
-		ctx.rotate(2*Math.PI*(this.ang)/360);
-		ctx.beginPath();
-		ctx.moveTo(-0.5*this.size, (1/3)*triHeight);
-		ctx.lineTo(0,(-2/3)*triHeight);
-		ctx.lineTo(0.5*this.size, (1/3)*triHeight);
-		ctx.lineTo(-0.5*this.size, (1/3)*triHeight);
-		ctx.fill();
-		//ctx.stroke();
-		ctx.restore();
-	},
 	
 	render: function(ctx) {
 		ctx.save();
@@ -329,8 +316,13 @@ Particle.prototype = {
 		ctx.translate(this.pos.x, this.pos.y);
 		switch(this.species){
 			case 'a':
+				let triHeight = Math.ceil(this.size)*TRI_HEIGHT_FACTOR; //find a way to do this only once (when particle is initialised)
+				ctx.rotate(2*Math.PI*(this.ang)/360);
 				ctx.beginPath();
-				ctx.arc(0,0,0.5*this.size,0,2*Math.PI);
+				ctx.moveTo(-0.5*this.size, (1/3)*triHeight);
+				ctx.lineTo(0,(-2/3)*triHeight);
+				ctx.lineTo(0.5*this.size, (1/3)*triHeight);
+				ctx.lineTo(-0.5*this.size, (1/3)*triHeight);
 				break;
 			
 			case 'b':
@@ -381,13 +373,13 @@ Particle.prototype = {
 		}
 		
 		if(WALLS){
-			if((this.vel.x  > 0 && this.pos.x  > width) || (this.vel.x  < 0 && this.pos.x < 0)){
+			if((this.vel.x  > 0 && this.pos.x  > 0.5*(width + WALL_WIDTH)) || (this.vel.x  < 0 && this.pos.x < 0.5*(width - WALL_WIDTH))){
 				this.vel.x  = -1*WALL_DAMPING*this.vel.x ;
-				if(this.pos.x > width){this.pos.x = width;} else {this.pos.x = 0;}
+				if(this.pos.x > 0.5*(width + WALL_WIDTH) ){this.pos.x = 0.5*(width + WALL_WIDTH);} else {this.pos.x = 0.5*(width - WALL_WIDTH);}
 			}
-			if((this.vel.y > 0 && this.pos.y  > height) || (this.vel.y  < 0 && this.pos.y < 0)){
+			if((this.vel.y > 0 && this.pos.y  > 0.5*(height + WALL_HEIGHT)) || (this.vel.y  < 0 && this.pos.y < 0.5*(height - WALL_HEIGHT))){
 				this.vel.y = -1*WALL_DAMPING*this.vel.y;
-				if(this.pos.y > height){this.pos.y = height;} else {this.pos.y = 0;}
+				if(this.pos.y > 0.5*(height + WALL_HEIGHT)){this.pos.y = 0.5*(height + WALL_HEIGHT);} else {this.pos.y = 0.5*(height - WALL_HEIGHT);}
 			}
 		}
 		this.interactionList = [];
@@ -553,7 +545,7 @@ function drawWorld(){
 	ctx0.drawImage(canvas_c, 0, 0);
 	for(let sp in particles){
 		if(showFields[sp]){
-			let fp = updateField(sp, 48, globalCoM);
+			let fp = updateField(sp, 32, globalCoM);
 			drawField(fp, ctx0);
 		}
 	}
@@ -573,7 +565,7 @@ function drawWorld(){
 		ctx0.strokeStyle = 'rgb(255,255,255)';
 		ctx0.lineWidth = 10;
 		ctx0.beginPath();
-		ctx0.rect(0,0,width, height);
+		ctx0.rect(0.5*(width - WALL_WIDTH),0.5*(height - WALL_HEIGHT),WALL_WIDTH, WALL_HEIGHT);
 		ctx0.stroke();
 	}
 	ctx0.restore();
