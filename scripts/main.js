@@ -95,7 +95,7 @@ canvas_tb.width = canvas0.width;
 canvas_tb.height = canvas0.height;
 
 const canvas_tc = document.createElement('canvas');
-const ctx_tc = canvas_ta.getContext('2d', {alpha: false});
+const ctx_tc = canvas_tc.getContext('2d', {alpha: false});
 canvas_tc.width = canvas0.width;
 canvas_tc.height = canvas0.height;
 
@@ -379,7 +379,7 @@ Particle.prototype = {
 
 	
 	update: function(pos, vel) {
-		if(this.history.length >= 1000){
+		if(this.history.length >= 500){
 			for(let l = this.history.length, i = l - 1; i > 0; i--){
 				//update element n + 1 with n's value
 				this.history[i] = this.history[i - 1];
@@ -414,9 +414,8 @@ Particle.prototype = {
 	}
 };
 
-function drawTrails(sp){
+function drawTrails(sp, ctx){
 	let list = particles[sp].list;
-	let ctx = particles[sp].ctx_t;
 	ctx.beginPath();
 	for(let i = 0, l = list.length; i < l; i++){
 		let p = list[i];
@@ -424,13 +423,13 @@ function drawTrails(sp){
 			let h = p.history;
 			if(h.length > 0){
 				ctx.moveTo(p.pos.x, p.pos.y);
-				for(let j = 0, hl = h.length; j < hl; j++){
-					ctx.lineTo(h[j].x, h[j].y);
+				for(let j = 1, hl = h.length; j < hl; j++){
+					ctx.lineTo(h[j].x, h[j].y);	
 				}
 			}
 		}
 	}
-	ctx.stroke();
+						ctx.stroke();
 }
 
 
@@ -449,14 +448,14 @@ for(let sp in particles){
 		
 }
 let globalCoM = {x:width/2, y:height/2, m:0, q:0};
-
+let lastGlobalCoM = globalCoM;
 drawWorld();
 
 
 ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
 
 function drawWorld(){
-	globalCoM = {x: 0, y: 0, m: 0, q:0};
+	lastGlobalCoM = globalCoM;
 	parts_live = 0;
 	selectedSpecies = nextSelectedSpecies;
 
@@ -486,7 +485,7 @@ function drawWorld(){
 		}
 		
 		doForces();
-		
+		globalCoM = {x: 0, y: 0, m: 0, q:0};
 		for(let sp in particles){			
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
@@ -565,7 +564,7 @@ function drawWorld(){
 		}
 		
 		if(showTrails){
-			drawTrails(sp);
+			drawTrails(sp, particles[sp].ctx_t);
 		}
 		
 		if(showCoM[sp] && nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
