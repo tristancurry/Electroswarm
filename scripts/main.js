@@ -40,6 +40,7 @@ let showBounding = false;
 let newMass = {a: false, b: false, c:false};
 let newCharge = {a: false, b: false, c:false};
 let showFields = {a: false, b: true, c: false};
+let showTrails = true;
 
 
 
@@ -83,11 +84,21 @@ const ctx_bhc = canvas_bhc.getContext('2d', {alpha: false});
 canvas_bhc.width = canvas0.width;
 canvas_bhc.height = canvas0.height;
 
-const canvas_f = document.createElement('canvas');
-const ctx_f = canvas_f.getContext('2d', {alpha:false});
+const canvas_ta = document.createElement('canvas');
+const ctx_ta = canvas_ta.getContext('2d', {alpha: false});
+canvas_ta.width = canvas0.width;
+canvas_ta.height = canvas0.height;
 
-canvas_f.width = canvas0.width;
-canvas_f.height = canvas0.height;
+const canvas_tb = document.createElement('canvas');
+const ctx_tb = canvas_tb.getContext('2d', {alpha: false});
+canvas_tb.width = canvas0.width;
+canvas_tb.height = canvas0.height;
+
+const canvas_tc = document.createElement('canvas');
+const ctx_tc = canvas_ta.getContext('2d', {alpha: false});
+canvas_tc.width = canvas0.width;
+canvas_tc.height = canvas0.height;
+
 
 let particles = {
 	a: {
@@ -95,21 +106,24 @@ let particles = {
 		list: [],
 		dead: false,
 		ctx: ctx_a,
-		ctx_bh: ctx_bha
+		ctx_bh: ctx_bha,
+		ctx_t: ctx_ta
 	},
 	b: {
 		species: 'b',
 		list: [],
 		dead: false,
 		ctx: ctx_b,
-		ctx_bh: ctx_bhb
+		ctx_bh: ctx_bhb,
+		ctx_t: ctx_tb
 	},
 	c: {
 		species: 'c',
 		list: [],
 		dead: false,
 		ctx: ctx_c,
-		ctx_bh: ctx_bhc
+		ctx_bh: ctx_bhc,
+		ctx_t: ctx_tc
 	}
 };
 
@@ -143,6 +157,10 @@ const Particle = function(species, pos_x, pos_y, vel_x, vel_y) {
 	this.interactionList = [];
 	this.mass = masses[species];
 	this.charge = charges[species];
+	this.history = [];
+	//history is used for drawing particle trails
+	//it is also to be used for calculating retarded field effects
+	//to fit in with BHA, nodes will also have to have this kind of history
     return this;
 };
 
@@ -361,6 +379,15 @@ Particle.prototype = {
 
 	
 	update: function(pos, vel) {
+		if(this.history.length >= 1000){
+			for(let l = this.history.length, i = l - 1; i > 0; i--){
+				//update element n + 1 with n's value
+				this.history[i] = this.history[i - 1];
+			}
+			this.history[0] = {x: this.pos.x, y: this.pos.y};
+		} else {
+			this.history.unshift({x: this.pos.x, y: this.pos.y});
+		}
 		this.pos.x = this.pos.x + this.vel.x ;
 		this.pos.y = this.pos.y + this.vel.y; 
 		this.vel.x = this.vel.x + this.acc.x;
@@ -382,10 +409,29 @@ Particle.prototype = {
 				if(this.pos.y > 0.5*(height + WALL_HEIGHT)){this.pos.y = 0.5*(height + WALL_HEIGHT);} else {this.pos.y = 0.5*(height - WALL_HEIGHT);}
 			}
 		}
+		
 		this.interactionList = [];
 	}
 };
 
+function drawTrails(sp){
+	let list = particles[sp].list;
+	let ctx = particles[sp].ctx_t;
+	ctx.beginPath();
+	for(let i = 0, l = list.length; i < l; i++){
+		let p = list[i];
+		if(!p.dead){
+			let h = p.history;
+			if(h.length > 0){
+				ctx.moveTo(p.pos.x, p.pos.y);
+				for(let j = 0, hl = h.length; j < hl; j++){
+					ctx.lineTo(h[j].x, h[j].y);
+				}
+			}
+		}
+	}
+	ctx.stroke();
+}
 
 
 
@@ -397,6 +443,9 @@ for(let sp in particles){
 		particles[sp].ctx.fillStyle = COLOURS[sp];
 		particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
 		particles[sp].ctx_bh.fillStyle = COLOURS[sp];
+		particles[sp].ctx_t.strokeStyle = COLOURS[sp];
+
+		
 }
 let globalCoM = {x:width/2, y:height/2, m:0, q:0};
 
@@ -446,11 +495,8 @@ function drawWorld(){
 					//p.vel.y += 0.05;
 				} else {
 					particles[sp].dead = true;
-				}
-				
+				}	
 			}
-			
-			
 			
 			if(nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
 				let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
@@ -459,7 +505,6 @@ function drawWorld(){
 				globalCoM.m += thisCoM.m;
 				globalCoM.q += thisCoM.q;
 			}
-
 		}
 
 		if(globalCoM.m > 0){
@@ -467,23 +512,27 @@ function drawWorld(){
 			globalCoM.y = globalCoM.y/globalCoM.m;
 		} else {
 			globalCoM = {x: 0.5*width, y: 0.5*height, m: 0, q:0};
-		}
-		
-
+		}	
 	}
 	
 	//cycle through each of the particle list
 	//and render the particles
 
 	for(let sp in particles){
+		let ctx = particles[sp].ctx;
+		let ctx_bh = particles[sp].ctx;
+		let ctx_t = particles[sp].ctx;
+		
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
+		particles[sp].ctx_t.clearRect(0,0,width,height);
 		particles[sp].ctx.save();
 		particles[sp].ctx_bh.save();
+		particles[sp].ctx_t.save();
 			
 		particles[sp].ctx.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		particles[sp].ctx_bh.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
-		ctx_f.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
+		particles[sp].ctx_t.translate(-1*globalCoM.x + 0.5*width, -1*globalCoM.y + 0.5*height);
 		if(particles[sp].list.length > 1 && showBounding){
 			let box = calculateBoundingBox(particles[sp].list);
 			particles[sp].ctx.beginPath();
@@ -503,10 +552,7 @@ function drawWorld(){
 				}
 			}		
 		}
-		
-
-		
-		
+			
 		if(showParticles[sp]){
 			for(let i = 0, l = particles[sp].list.length; i < l; i++){
 				let p = particles[sp].list[i];
@@ -520,15 +566,21 @@ function drawWorld(){
 			}
 		}
 		
+		if(showTrails){
+			drawTrails(sp);
+		}
+		
 		if(showCoM[sp] && nodeList[sp].length > 0 && nodeList[sp][nodeList[sp].length - 1].CoM.m > 0){
 			particles[sp].ctx_bh.beginPath();
 			let thisCoM = nodeList[sp][nodeList[sp].length - 1].CoM;
-			particles[sp].ctx_bh.arc(thisCoM.x,thisCoM.y,20,0,2*Math.PI);
+			particles[sp].ctx_bh.arc(thisCoM.x,thisCoM.y,Math.ceil(0.015*width),0,2*Math.PI);
 			particles[sp].ctx_bh.globalAlpha = 1;
+			particles[sp].ctx_bh.lineWidth = 2;
 			particles[sp].ctx_bh.stroke();
 		}
 		particles[sp].ctx.restore();
 		particles[sp].ctx_bh.restore();
+		particles[sp].ctx_t.restore();
 	}
 
 	ctx0.clearRect(0,0,width,height);
@@ -538,11 +590,16 @@ function drawWorld(){
 	ctx0.drawImage(canvas_bha, 0, 0);
 	ctx0.drawImage(canvas_bhb, 0, 0);
 	ctx0.drawImage(canvas_bhc, 0, 0);
+
 	
 	ctx0.globalCompositeOperation = 'screen';
+	ctx0.drawImage(canvas_ta, 0, 0);
+	ctx0.drawImage(canvas_tb, 0, 0);
+	ctx0.drawImage(canvas_tc, 0, 0);
 	ctx0.drawImage(canvas_a, 0, 0);
 	ctx0.drawImage(canvas_b, 0, 0);
 	ctx0.drawImage(canvas_c, 0, 0);
+
 	for(let sp in particles){
 		if(showFields[sp]){
 			let fp = updateField(sp, 32, globalCoM);
@@ -551,6 +608,7 @@ function drawWorld(){
 	}
 	
 	ctx0.globalCompositeOperation = 'source-over';
+
 	
 	
 	ctx0.save();
@@ -559,11 +617,11 @@ function drawWorld(){
 	
 	ctx0.beginPath();
 	ctx0.lineWidth = 2;
-	ctx0.arc(globalCoM.x,globalCoM.y,35,0,2*Math.PI);
+	ctx0.arc(globalCoM.x,globalCoM.y,Math.ceil(0.03*width),0,2*Math.PI);
 	ctx0.stroke();
 		if(WALLS){
-		ctx0.strokeStyle = 'rgb(255,255,255)';
-		ctx0.lineWidth = 10;
+		ctx0.strokeStyle = 'rgba(255,255,255,0.5)';
+		ctx0.lineWidth = 5;
 		ctx0.beginPath();
 		ctx0.rect(0.5*(width - WALL_WIDTH),0.5*(height - WALL_HEIGHT),WALL_WIDTH, WALL_HEIGHT);
 		ctx0.stroke();
