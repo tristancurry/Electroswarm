@@ -444,6 +444,7 @@ for(let sp in particles){
 		particles[sp].ctx_bh.strokeStyle = COLOURS[sp];
 		particles[sp].ctx_bh.fillStyle = COLOURS[sp];
 		particles[sp].ctx_t.strokeStyle = COLOURS[sp];
+		particles[sp].ctx_t.fillStyle = COLOURS[sp];
 
 		
 }
@@ -519,9 +520,6 @@ function drawWorld(){
 	//and render the particles
 
 	for(let sp in particles){
-		let ctx = particles[sp].ctx;
-		let ctx_bh = particles[sp].ctx;
-		let ctx_t = particles[sp].ctx;
 		
 		particles[sp].ctx.clearRect(0,0,width,height);
 		particles[sp].ctx_bh.clearRect(0,0,width,height);
