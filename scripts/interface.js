@@ -6,11 +6,15 @@
 
 const SPAWN_ICONS = ['1','🔟','💯'];
 const PLAY_ICONS = ['⏸️','▶️'];
-const COUPLING_ICONS = ['🐸','🐵','🐔','🐨','🐲'];
+const COUPLING_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻','🐟','🐌'];
+const CHARGE_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
+const MASS_ICONS = ['🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
 
 const debugBox = document.getElementsByClassName('debug')[0];
 
 //Initialise button states (so they don't need to be specified in HTML
+
+
 
 function initialiseButtonStates(){
 	//setButtonState(btn, icon_array, value);
@@ -61,6 +65,22 @@ controls.addEventListener('click', function(event){
 				
 			case 'btn_coupling':
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
+				break;
+				
+			case 'btn_fields':
+				if(!showFields['a'] && !showFields['b'] && !showFields['c']){
+					showFields['a'] = true;
+				} else {
+					for (let sp in particles){
+						if(showFields[sp] == true){
+							showFields[sp] = false;
+							if(sp == 'a'){showFields['b'] = true;}
+							if(sp == 'b'){showFields['c'] = true;}
+							break;
+						}
+					}
+				}
+				console.log(showFields);
 				break;
 				
 				
@@ -118,15 +138,42 @@ function handleCouplingClicks(event){
 		//update their values together
 		let linkedButtons = couplingGrid.getElementsByClassName(t.classList[t.classList.length - 1]);
 		for(let i = 0, l = linkedButtons.length; i < l; i++){
-			cycleIcon(linkedButtons[i], COUPLING_ICONS);
+			cycleIcon(linkedButtons[i], COUPLING_ICONS);	
 		}
+		let newCoupling = convertButtonValue(t.value, COUPLING_VALUES);
+		let coupleString = t.classList[t.classList.length - 1];
+		let firstLetter = coupleString.slice(0, 1);
+		let lastLetter = coupleString.slice(1);
+		
+		if(firstLetter != lastLetter){
+			coupling[firstLetter][lastLetter] = newCoupling;
+			coupling[lastLetter][firstLetter] = newCoupling;
+		} else {
+			coupling[firstLetter][firstLetter] = newCoupling;
+		}			
+		
 	}
 }
 
 function handlePropertiesClicks(event){
 	let t = event.target;
 	if(t.tagName == 'BUTTON' && !t.disabled){
-		cycleIcon(t, COUPLING_ICONS);
+		let sp = t.classList[1]
+		switch(t.classList[0]){
+			case 'mass':
+				cycleIcon(t, MASS_ICONS);
+				let m_new = convertButtonValue(t.value, MASS_VALUES);
+				masses[sp] = m_new;
+				newMass[sp] = true; //line up the species for a charge update in next frame
+				break;
+			
+			case 'charge':
+				cycleIcon(t, CHARGE_ICONS);
+				let q_new = convertButtonValue(t.value, CHARGE_VALUES);
+				charges[sp] = q_new;
+				newCharge[sp] = true; //line up the species for a charge update in next frame
+				break;
+		}
 	}
 }
 
@@ -139,11 +186,19 @@ function handleViewOptionsClicks(event){
 				break;
 
 			case 'chk_showparticles':
-				showParticles = !showParticles;
+				for(let sp in particles){
+					showParticles[sp] = !showParticles[sp];
+				}
 				break;
 				
 			case 'chk_showBounding':
 				showBounding = !showBounding;
+				break;
+			
+			case 'chk_showTree':
+				for(let sp in particles){
+					showTree[sp] = !showTree[sp];
+				}
 				break;
 		}
 	}

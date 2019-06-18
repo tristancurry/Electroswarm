@@ -43,7 +43,7 @@
 				</div>
 
 				<div class='physics container'>
-					<button>&#x1F4CC</button>
+					<button id= 'btn_fields'>&#x1F4CC</button>
 					<button id = 'btn_coupling'>&#x1F517</button>
 				</div>
 
@@ -91,18 +91,18 @@
 									<div>charge</div>
 								
 									<button class='icon' disabled>🔺</button>
-									<button class='mass' value=0>🐸</button>
-									<button class='charge' value=0>🐸</button>
+									<button class='mass a' value=0>🐸</button>
+									<button class='charge a' value=0>🐸</button>
 
 								
 									<button class='icon' disabled>⚪</button>
-									<button class='mass' value=0>🐸</button>
-									<button class='charge' value=0>🐸</button>
+									<button class='mass b' value=0>🐸</button>
+									<button class='charge b' value=0>🐸</button>
 
 								
 									<button class='icon' disabled>🔹</button>
-									<button class='mass' value=0>🐸</button>
-									<button class='charge' value=0>🐸</button>
+									<button class='mass c' value=0>🐸</button>
+									<button class='charge c' value=0>🐸</button>
 								</div>
 							</div>
 							<button onclick='toggleDisplay(this.parentNode.parentNode.parentNode)'>OK</button>
@@ -116,7 +116,8 @@
 							<div class='modal-body'>
 							<label class='switch'><input type='checkbox' id='chk_simple' checked><span class='slider round'></span></label><label for='chk_simple'>Simple Rendering</label>
 							<label class='switch'><input type='checkbox' id='chk_showparticles' checked><span class='slider round'></span></label><label for='chk_showParticles'>Show Particles</label>
-							<label class='switch'><input type='checkbox' id='chk_showBounding' checked><span class='slider round'></span></label><label for='chk_showBounding'>Show Bounding Boxes</label>
+							<label class='switch'><input type='checkbox' id='chk_showBounding'><span class='slider round'></span></label><label for='chk_showBounding'>Show Bounding Boxes</label>
+							<label class='switch'><input type='checkbox' id='chk_showTree' checked><span class='slider round'></span></label><label for='chk_showTree'>Show BHA quadtrees</label>
 								<button onclick='toggleDisplay(this.parentNode.parentNode.parentNode)'>OK</button>
 							</div>
 						</div>
