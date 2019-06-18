@@ -35,6 +35,7 @@ button {
 	flex-grow: 0;
 	max-width:800px;
 	max-height:800px;
+	overflow:hidden;
 }
 
 canvas {
@@ -60,36 +61,39 @@ canvas {
 	background-color:#444444;
 	flex-grow:1;
 	display:flex;
+	flex-direction:column;
 	flex-wrap:wrap;
-	//text-align: center;
 }
 
 
-.controls .container {
+.container {
 	position:relative;
 	font-size:0px;
-	display:flex
+	display:none;
 	flex-wrap: wrap;
 	text-align: center;
-	display:inline-block;
 	flex-grow: 1;
 }
 
-
+.button-container {
+	font-size: 12px;
+	display:inline-block;
+	padding:2px;
+}
 
 .particles {
 	background-color: blue;
-}
-
-.playback {
-	background-color: green;
 }
 
 .physics {
 	background-color: orange;
 }
 
-.options {
+.view {
+	background-color: green;
+}
+
+.misc {
 	background-color: purple;
 }
 
@@ -97,18 +101,53 @@ canvas {
  .species-selector, .quantity-selector {
 	 display:inline-block;
 	 margin:1px;
+	 font-size: 0px;
  }
 
 /* control styles */
 
-.controls button {
+
+
+.control-button {
 	vertical-align:top;
-	width:12.5vw;
+	width:10vw;
 	font-size: 8.7vw;
-	height:12.5vw;
+	height:10vw;
 	max-width:50px;
 	max-height:50px;
 }
+
+.tabs {
+	width:100%;
+	height:10vw;
+	flex-grow: 0;
+	font-size: 0;
+	display:flex;
+}
+
+.control-tab {
+	width:100%;
+	background-color: blue;
+	font-size: 14px;
+	color:white;
+	background-color: black;
+}
+
+
+.tabs #particles.selected{
+	background-color: blue;
+}
+.tabs #physics.selected {
+	background-color: orange;
+}
+.tabs #view.selected {
+	background-color: green;
+}
+.tabs #misc.selected {
+	background-color: purple;
+}
+
+
 
 .coupling-grid button, .properties-grid button {
 	width: 40px;
@@ -341,8 +380,8 @@ input:checked + .slider:before {
 
 /*Mobile-portrait style */
 @media only screen and (max-width: 700px),(orientation: portrait){
-		.controls button{
-		font-size: 30px;
+		.control-button{
+		font-size: 24px;
 	}
 
 }
@@ -368,7 +407,7 @@ In this case, target SPECIFIC screen dimensions */
 		width: 70%;
 	}
 
-	.controls button{
+	.control-button{
 		font-size: 30px;
 	}
 	

@@ -40,7 +40,7 @@ let showBounding = false;
 let newMass = {a: false, b: false, c:false};
 let newCharge = {a: false, b: false, c:false};
 let showFields = {a: false, b: true, c: false};
-let showTrails = true;
+let showTrails = {a: true, b: true, c: true};
 
 
 
@@ -563,7 +563,7 @@ function drawWorld(){
 			}
 		}
 		
-		if(showTrails){
+		if(showTrails[sp]){
 			drawTrails(sp, particles[sp].ctx_t);
 		}
 		

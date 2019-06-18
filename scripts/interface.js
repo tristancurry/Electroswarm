@@ -11,7 +11,7 @@ const CHARGE_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','�
 const MASS_ICONS = ['🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
 
 const debugBox = document.getElementsByClassName('debug')[0];
-
+let pausedByModal = false;
 //Initialise button states (so they don't need to be specified in HTML
 
 
@@ -44,16 +44,35 @@ viewport.addEventListener('click', function(event){
 	let t = event.target;
 	if(t.classList.contains('modal')){
 		toggleDisplay(t);
+		if(pausedByModal && paused){playPause(); pausedByModal = false;}
 		event.stopPropagation();
 	}
 });
+
+
+let tabs = document.getElementsByClassName('tabs')[0];
+tabs.addEventListener('click', function(event){
+	let t = event.target;
+	let controls = document.getElementsByClassName('controls')[0];
+	let controlTabs = controls.getElementsByClassName('container');
+	for(let i  = 0; i < controlTabs.length; i++){
+		if(controlTabs[i].classList.contains('show')){controlTabs[i].classList.toggle('show');}
+		let thisControlTab = document.getElementById(controlTabs[i].classList[0]);
+		if(thisControlTab.classList.contains('selected')){thisControlTab.classList.toggle('selected');}
+	}
+
+	let thisTab = controls.getElementsByClassName(t.id)[0];
+	thisTab.classList.toggle('show');
+	t.classList.toggle('selected');
+	event.stopPropagation();
+});
+
 
 let controls = document.getElementsByClassName('controls')[0];
 controls.addEventListener('click', function(event){
 	let t = event.target;
 	if(t.tagName == 'BUTTON'){
 		switch(t.id){
-
 			
 			case 'btn_playPause':
 				playPause();
@@ -64,6 +83,7 @@ controls.addEventListener('click', function(event){
 				break;
 				
 			case 'btn_coupling':
+				if(!paused){pausedByModal = true; playPause();}
 				toggleDisplay(document.getElementsByClassName('coupling')[0]);
 				break;
 				
@@ -80,7 +100,30 @@ controls.addEventListener('click', function(event){
 						}
 					}
 				}
-				console.log(showFields);
+				break;
+				
+			case 'btn_trails':
+				if(!showTrails['a'] && !showTrails['b'] && !showTrails['c']){
+					showTrails['a'] = true;
+				} else if(showTrails['a'] && showTrails['b'] && showTrails['c']){
+					for (let sp in particles){
+						showTrails[sp] = false;
+					}
+				} else {
+					for (let sp in particles){
+						if(showTrails[sp] == true){
+							showTrails[sp] = false;
+							if(sp == 'a'){showTrails['b'] = true;}
+							if(sp == 'b'){showTrails['c'] = true;}
+							if(sp == 'c'){
+								for (let ps in particles){
+									showTrails[ps] = true;
+								}
+							}
+							break;
+						}
+					}
+				}
 				break;
 				
 				
