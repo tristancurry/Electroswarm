@@ -7,9 +7,9 @@ const R_1_SQ = Math.pow(R_1,2);
 const MAX_DEPTH = 25; //maximum depth for recursion in building quadtree
 const S_D_THRESHOLD = 0.5; //value of s/d below which the CoM of a node can be used for force calculation. S is the width of the node, d is the distance of a particle to the node's CoM.
 const S_D_THRESHOLD_SQ = Math.pow(S_D_THRESHOLD,2);
-const COUPLING_VALUES = [-1000, -500, -100, -50, -10, 0, 10, 50, 100, 500, 1000];
+const COUPLING_VALUES = [-1000, -500, -200, -100, -50, -20, -10, 0, 10, 20, 50, 100, 200, 500, 1000];
 const MASS_VALUES = [1, 2, 5, 10, 100, 500, 1000, 10000];
-const CHARGE_VALUES = [0, 1, 2, 5, 10, 100, 500, 1000, 10000];
+const CHARGE_VALUES = [0, 1, 2, 5, 10, 50, 100, 500, 1000, 10000];
 
 direct_calc = false;
 bha_calc = true;
@@ -20,8 +20,9 @@ let nodeList = {a: [], b: [], c: []};
 let coupling = {
 	a: {a: -1000, b: 1000, c: 50},
 	b: {a: 1000, b: -1000, c: 50},
-	c: {a: 50, b: 50, c: 250}
+	c: {a: 50, b: 50, c: 200}
 }
+
 
 let	masses = {
 	a: 10,

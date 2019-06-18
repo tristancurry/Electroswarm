@@ -6,8 +6,8 @@
 
 const SPAWN_ICONS = ['1','🔟','💯'];
 const PLAY_ICONS = ['⏸️','▶️'];
-const COUPLING_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻','🐟','🐌'];
-const CHARGE_ICONS = ['🐸','🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
+const COUPLING_ICONS = ['url(images/r_100.svg)','url(images/r_050.svg)','url(images/r_020.svg)','url(images/r_010.svg)','url(images/r_005.svg)','url(images/r_002.svg)','url(images/r_001.svg)','url(images/r_000.svg)','url(images/a_001.svg)','url(images/a_002.svg)','url(images/a_005.svg)','url(images/a_010.svg)','url(images/a_020.svg)','url(images/a_050.svg)','url(images/a_100.svg)'];
+const CHARGE_ICONS = ['url(images/c_000.svg)','url(images/c_001.svg)','url(images/c_002.svg)','url(images/c_005.svg)','url(images/c_010.svg)','url(images/c_050.svg)','url(images/c_100.svg)','url(images/c_500.svg)','url(images/c_01k.svg)', 'url(images/c_10k.svg)'];
 const MASS_ICONS = ['🐵','🐔','🐨','🐲','🦄','🦊','🐹','🐻'];
 
 const debugBox = document.getElementsByClassName('debug')[0];
@@ -22,6 +22,22 @@ function initialiseButtonStates(){
 	setButtonState(document.getElementById('btn_playPause'), PLAY_ICONS, 0);
 	
 	switchParticleType(document.getElementById('btn_b'));
+	
+	for(let sp in coupling){
+		for (let ps in coupling){
+			btn = document.getElementsByClassName(sp + ps)[0];
+			btn.innerHTML = '';
+			btn.value = convertValueToButton(coupling[sp][ps], COUPLING_VALUES);	
+			btn.style.backgroundImage = COUPLING_ICONS[btn.value];
+		}
+	}
+	
+	for(let sp in charges){
+			btn = document.getElementsByClassName('properties-grid')[0].getElementsByClassName(sp)[1];
+			btn.innerHTML = '';
+			btn.value = convertValueToButton(charges[sp], CHARGE_VALUES);	
+			btn.style.backgroundImage = CHARGE_ICONS[btn.value];
+	}
 	
 }
 
@@ -179,21 +195,20 @@ function handleCouplingClicks(event){
 	if(t.tagName == 'BUTTON' && !t.disabled){
 		//grab all buttons of same class (e.g. bc, or ac)
 		//update their values together
-		let linkedButtons = couplingGrid.getElementsByClassName(t.classList[t.classList.length - 1]);
-		for(let i = 0, l = linkedButtons.length; i < l; i++){
-			cycleIcon(linkedButtons[i], COUPLING_ICONS);	
-		}
-		let newCoupling = convertButtonValue(t.value, COUPLING_VALUES);
 		let coupleString = t.classList[t.classList.length - 1];
 		let firstLetter = coupleString.slice(0, 1);
 		let lastLetter = coupleString.slice(1);
+
+		let newCoupling = convertButtonValue(t.value, COUPLING_VALUES);
+
+		cycleIconImages(t, COUPLING_ICONS);	
+		coupling[firstLetter][firstLetter] = newCoupling;
 		
 		if(firstLetter != lastLetter){
-			coupling[firstLetter][lastLetter] = newCoupling;
+			pairedBtn = couplingGrid.getElementsByClassName(lastLetter + firstLetter)[0];
+			cycleIconImages(pairedBtn, COUPLING_ICONS);
 			coupling[lastLetter][firstLetter] = newCoupling;
-		} else {
-			coupling[firstLetter][firstLetter] = newCoupling;
-		}			
+		} 		
 		
 	}
 }
@@ -211,7 +226,7 @@ function handlePropertiesClicks(event){
 				break;
 			
 			case 'charge':
-				cycleIcon(t, CHARGE_ICONS);
+				cycleIconImages(t, CHARGE_ICONS);
 				let q_new = convertButtonValue(t.value, CHARGE_VALUES);
 				charges[sp] = q_new;
 				newCharge[sp] = true; //line up the species for a charge update in next frame
@@ -268,6 +283,12 @@ function playPause(){
 function cycleIcon(btn, icon_array){
 	btn.value = (parseInt(btn.value) + 1)%icon_array.length;
 	btn.innerHTML = icon_array[btn.value];
+}
+
+function cycleIconImages(btn, icon_array){
+	btn.value = (parseInt(btn.value) + 1)%icon_array.length;
+	btn.innerHTML = '';
+	btn.style.backgroundImage = icon_array[btn.value];
 }
 
 function setButtonState(btn, icon_array, value){
