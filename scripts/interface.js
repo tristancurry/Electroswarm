@@ -199,17 +199,15 @@ function handleCouplingClicks(event){
 		let firstLetter = coupleString.slice(0, 1);
 		let lastLetter = coupleString.slice(1);
 
+		cycleIconImages(t, COUPLING_ICONS);	//this also changes the button's value
 		let newCoupling = convertButtonValue(t.value, COUPLING_VALUES);
-
-		cycleIconImages(t, COUPLING_ICONS);	
-		coupling[firstLetter][firstLetter] = newCoupling;
+		coupling[firstLetter][lastLetter] = newCoupling;
 		
 		if(firstLetter != lastLetter){
 			pairedBtn = couplingGrid.getElementsByClassName(lastLetter + firstLetter)[0];
 			cycleIconImages(pairedBtn, COUPLING_ICONS);
 			coupling[lastLetter][firstLetter] = newCoupling;
 		} 		
-		console.log(coupling);
 	}
 }
 
@@ -287,7 +285,6 @@ function cycleIcon(btn, icon_array){
 
 function cycleIconImages(btn, icon_array){
 	btn.value = (parseInt(btn.value) + 1)%icon_array.length;
-	btn.innerHTML = '';
 	btn.style.backgroundImage = icon_array[btn.value];
 }
 
