@@ -368,7 +368,7 @@ Particle.prototype = {
 	
 	render_simple: function(ctx) {//most basic shape
 		ctx.save();
-		ctx.lineWidth = 3;
+		//ctx.lineWidth = 3;
 		ctx.translate(this.pos.x, this.pos.y);
 		ctx.beginPath();
 		ctx.rect(-0.5*this.size, -0.5*this.size, this.size, this.size);
@@ -379,14 +379,18 @@ Particle.prototype = {
 
 	
 	update: function(pos, vel) {
+		if(showTrails[this.species]){
 		if(this.history.length >= 500){
 			for(let l = this.history.length, i = l - 1; i > 0; i--){
 				//update element n + 1 with n's value
 				this.history[i] = this.history[i - 1];
 			}
-			this.history[0] = {x: this.pos.x, y: this.pos.y};
+				this.history[0] = {x: this.pos.x, y: this.pos.y};
+			} 	else {
+				this.history.unshift({x: this.pos.x, y: this.pos.y});
+			}
 		} else {
-			this.history.unshift({x: this.pos.x, y: this.pos.y});
+			this.history = [];
 		}
 		this.pos.x = this.pos.x + this.vel.x ;
 		this.pos.y = this.pos.y + this.vel.y; 
@@ -395,7 +399,7 @@ Particle.prototype = {
 		this.acc.x = 0;
 		this.acc.y = 0;
 		
-		if(this.species == 'a' || this.species == 'c'){
+		if(this.species == 'a' || this.species == 'c' && !simpleRender){
 		this.ang = (this.ang + this.rot)%360;
 		}
 		

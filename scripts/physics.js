@@ -348,7 +348,7 @@ function addParticle(p, node){
 		//add to the node's list of particles
 		node.list.push(p); 
 		//STEP 2. Will this particle be alone in the node?
-		if(node.list.length == 1 || node.depth >= MAX_DEPTH){
+		if(node.list.length == 1 || node.depth == MAX_DEPTH){
 			//we're done.
 		} else if(node.list.length == 2){
 			//great. now we gotta make some sub-nodes and try to put each of the existing particles in those too
@@ -392,25 +392,25 @@ function addParticle(p, node){
 			//see which node a particle should go into, then try to put it into that node.
 			for(let i = 0; i < node.list.length; i++){
 				let this_p = node.list[i];
-				for(nd in node.nodes){
-					if(isThisMyNode(this_p, node.nodes[nd])){
-						addParticle(this_p, node.nodes[nd]);
+				for(let j = 0; j < node.nodes.length; j++){
+					if(isThisMyNode(this_p, node.nodes[j])){
+						addParticle(this_p, node.nodes[j]);
 						break;
 					}
 				}	
 			}
-		} else if(node.list.length > 2){
+		} else {
 			//glorious. we can now see if the particle will fit in any of the sub-nodes --> recursion
-			for(nd in node.nodes){
-					if(isThisMyNode(p, node.nodes[nd])){
-					addParticle(p, node.nodes[nd]);
+			for(let i = 0; i< node.nodes.length; i++){
+					if(isThisMyNode(p, node.nodes[i])){
+					addParticle(p, node.nodes[i]);
 					break;
 				}
 			}	
 		}
 		if(node.list.length > 0){
-		node.CoM = calculateCoM(node.list);
-		node.charge = node.CoM.q;
+			node.CoM = calculateCoM(node.list);
+			node.charge = node.CoM.q;
 		}
 	}
 }
@@ -484,25 +484,26 @@ function updateField(species, res, gCoM) { //calculates direction and strength o
 					res: res
 				}
 				for(sp in particles){
+					let coup = coupling[species][sp]*charges[sp];
+					if(coup != 0){
 					let list = nodeList[sp][nodeList[sp].length - 1].list;  //particle list of trunk node - contains all living particles (BHA only)
 					for(let k = 0, l = list.length; k < l; k++){
 						let p = list[k];
 						dists =	calculateDistance(p, pnt);
 
 						
-						let coup = coupling[species][p.species];
-						if(coup != 0){
-							let d = Math.sqrt(dists[0]);
-							let E_mag = coup*p.charge/dists[0];
-							pnt.comps.x += E_mag*(dists[1]/d);
-							pnt.comps.y += E_mag*(dists[2]/d);
-						}
+						let d = Math.sqrt(dists[0]);
+						let E_mag = coup/dists[0];
+						pnt.comps.x += E_mag*(dists[1]/d);
+						pnt.comps.y += E_mag*(dists[2]/d);
+						
 						//for each point in the 'grid'
 						//calculate the strength of the field for a particle of this species, charge = 1;
 						//calculate the components
 						//normalise components to length unity
 						//return a list of locations, with a strength and direction components
 					}
+				}
 				}
 					pnt.mag = Math.sqrt((pnt.comps.x * pnt.comps.x) + (pnt.comps.y * pnt.comps.y));
 					pnt.comps.x = pnt.comps.x/pnt.mag;
@@ -520,21 +521,22 @@ function drawField(fieldPoints, ctx) {
 	if(fieldPoints.length > 0){
 		for (let i = 0, l = fieldPoints.length; i < l; i++){
 			let pnt = fieldPoints[i];
-			ctx.save();
-			ctx.translate(pnt.dPos.x, pnt.dPos.y);
-			ctx.setTransform(1,0,0,1,pnt.dPos.x, pnt.dPos.y);
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = COLOURS[pnt.species];
-			ctx.globalAlpha = 5*pnt.mag;
-			ctx.beginPath();
-			ctx.moveTo(0.35*pnt.res*pnt.comps.x, 0.35*pnt.res*pnt.comps.y);
-			ctx.lineTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
-			ctx.lineTo(-0.2*pnt.res*pnt.comps.x - 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y + 0.2*pnt.res*pnt.comps.x);
-			ctx.moveTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
-			ctx.lineTo(-0.2*pnt.res*pnt.comps.x + 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y - 0.2*pnt.res*pnt.comps.x);
-			ctx.stroke();
-
-			ctx.restore();
+			if(pnt.mag != 0){
+				ctx.translate(pnt.dPos.x, pnt.dPos.y);
+				ctx.setTransform(1,0,0,1,pnt.dPos.x, pnt.dPos.y);
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = COLOURS[pnt.species];
+				ctx.globalAlpha = 5*pnt.mag;
+				ctx.beginPath();
+				ctx.moveTo(0.35*pnt.res*pnt.comps.x, 0.35*pnt.res*pnt.comps.y);
+				ctx.lineTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
+				ctx.lineTo(-0.2*pnt.res*pnt.comps.x - 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y + 0.2*pnt.res*pnt.comps.x);
+				ctx.moveTo(-0.35*pnt.res*pnt.comps.x, -0.35*pnt.res*pnt.comps.y);
+				ctx.lineTo(-0.2*pnt.res*pnt.comps.x + 0.2*pnt.res*pnt.comps.y, -0.2*pnt.res*pnt.comps.y - 0.2*pnt.res*pnt.comps.x);
+				ctx.stroke();
+			}
+			ctx.globalAlpha = 1;
+			ctx.setTransform(1,0,0,1,0,0);
 		}
 	
 	}
