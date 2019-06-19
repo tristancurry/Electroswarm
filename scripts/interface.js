@@ -209,7 +209,7 @@ function handleCouplingClicks(event){
 			cycleIconImages(pairedBtn, COUPLING_ICONS);
 			coupling[lastLetter][firstLetter] = newCoupling;
 		} 		
-		
+		console.log(coupling);
 	}
 }
 
