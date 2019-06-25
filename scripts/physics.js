@@ -100,7 +100,7 @@ function calculateForce(particle, otherThing, dists){
 		particle.acc.x += F.x/particle.mass;
 		particle.acc.y += F.y/particle.mass;
 
-		if(otherThing.type == 'particle'){
+		if(otherThing.type == 'particle' && otherThing.species != particle.species){
 			otherThing.acc.x -= F.x/otherThing.mass;
 			otherThing.acc.y -= F.y/otherThing.mass;
 		}
@@ -108,53 +108,7 @@ function calculateForce(particle, otherThing, dists){
 }
 
 function doForces(){  //this will be replaced by the BHA force calculations
-	if(direct_calc){
-		//for each particle,
-		//go through own species list
-
-		for(let sp in particles){
-			let list = particles[sp].list;
-			for(let i = 0, l = list.length; i < l; i++){
-				let thisP = list[i];
-				if(!thisP.dead){
-					for(let j = i; j < l; j++){
-						if(i != j){
-							let thatP = list[j];
-							if(!thatP.dead){
-								calculateForce(thisP, thatP);
-							}
-						}
-					}
-				}
-			}	
-		} //this is all of the intra-species interactions. Now for inter-species...
-		//only need to do A-B, A-C and B-C
-		for(let sp in particles){
-			if(sp == 'a' || sp == 'b'){
-				let list = particles[sp].list;
-				for(let ps in particles){
-					if(ps != sp && ps != 'a'){
-						let list2 = particles[ps].list;
-						for(let i = 0, l = list.length; i < l; i++){
-							let thisP = list[i];
-							if(!thisP.dead){
-								for(let j = 0, l2 = list2.length; j < l2; j++){
-									let thatP = list2[j];
-									if(!thatP.dead && thisP != thatP){
-										calculateForce(thisP, thatP);
-									}
-								}
-							}
-							
-						}
-					}
-				}
-			}	
-		}
-		
-	} else
-		
-	if(bha_calc){
+	
 		for(let sp in particles){
 			let thisList = particles[sp].list;
 			if(thisList.length > 0){
@@ -188,7 +142,7 @@ function doForces(){  //this will be replaced by the BHA force calculations
 			}
 		}		
 	}
-}
+
 
 
 function buildInteractionList(particle, node){	//build list of nodes and other particles for a particle to interact with (BHA mode)
@@ -196,7 +150,7 @@ function buildInteractionList(particle, node){	//build list of nodes and other p
 		if(node.list.length > 0){
 			if(!(node.list.length == 1 && node.list[0] == particle)){ //the case where the one thing in the node is the particle in question
 				let dists = calculateDistance(particle, node);
-				if((node.bounds.width*node.bounds.height)/dists[0] < S_D_THRESHOLD_SQ){ //if CoM of this node is 'far enough' away, add to interaction list
+				if((node.bounds.width*node.bounds.width)/dists[0] < S_D_THRESHOLD_SQ && (node.bounds.height*node.bounds.height)/dists[0] < S_D_THRESHOLD_SQ  ){ //if CoM of this node is 'far enough' away, add to interaction list
 					//console.log('far enough away');
 					let pack = {thing: node, dists: dists};
 					particle.interactionList.push(pack);
