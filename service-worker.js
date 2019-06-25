@@ -6,7 +6,32 @@ let urlsToCache = [
 	'scripts/swHandling.js',
 	'scripts/main.js',
 	'scripts/interface.js',
-	'scripts/physics.js'
+	'scripts/physics.js',
+	'images/r_000.svg',
+	'images/a_001.svg',
+	'images/a_002.svg',
+	'images/a_005.svg',
+	'images/a_010.svg',
+	'images/a_020.svg',
+	'images/a_050.svg',
+	'images/a_100.svg',
+	'images/r_001.svg',
+	'images/r_002.svg',
+	'images/r_005.svg',
+	'images/r_010.svg',
+	'images/r_020.svg',
+	'images/r_050.svg',
+	'images/r_100.svg',
+	'images/c_000.svg',
+	'images/c_002.svg',
+	'images/c_005.svg',
+	'images/c_010.svg',
+	'images/c_020.svg',
+	'images/c_050.svg',
+	'images/c_100.svg',
+	'images/c_01k.svg',
+	'images/c_10k.svg'
+	
 	
 ];
 
