@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="105.83333mm"
+   height="105.83333mm"
+   viewBox="0 0 105.83333 105.83333"
+   version="1.1"
+   id="svg5350"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   sodipodi:docname="a_005.svg">
+  <defs
+     id="defs5344" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="-947.14288"
+     inkscape:cy="-125.7143"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata5347">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-96.005957,-9.7381008)">
+    <g
+       id="g4879"
+       transform="rotate(45,196.11576,449.43114)">
+      <g
+         transform="translate(-186.8009,106.62691)"
+         id="g853-5">
+        <path
+           id="path823-6-1"
+           style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:0.19988948px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 31.800841,105.61665 h 17.365023 v 4.74509 l 7.67291,-7.67291 -7.67291,-7.672909 v 4.74509 H 31.800841 v 2.927819 z"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccccccc" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path823-6-1"
+           id="use849-2"
+           transform="rotate(180,76.053877,102.68883)"
+           width="100%"
+           height="100%" />
+      </g>
+      <g
+         id="use1034-8"
+         transform="translate(-186.8009,89.995951)">
+        <path
+           sodipodi:nodetypes="ccccccccc"
+           inkscape:connector-curvature="0"
+           d="m 33.917509,105.61665 h 17.365023 v 4.74509 l 7.67291,-7.67291 -7.67291,-7.672909 v 4.74509 H 33.917509 v 2.927819 z"
+           style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:0.19988948px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           id="path4741-7" />
+        <use
+           height="100%"
+           width="100%"
+           transform="rotate(180,74.995545,102.68883)"
+           id="use4743-8"
+           xlink:href="#path823-6-1"
+           y="0"
+           x="0" />
+      </g>
+      <g
+         transform="translate(-186.8009,73.365001)"
+         id="use1036-19">
+        <path
+           id="path4747-9"
+           style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:0.19988948px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 40.267513,105.61665 h 17.365023 v 4.74509 l 7.67291,-7.67291 -7.67291,-7.672909 v 4.74509 H 40.267513 v 2.927819 z"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccccccc" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path823-6-1"
+           id="use4749-8"
+           transform="rotate(180,71.820549,102.68883)"
+           width="100%"
+           height="100%" />
+      </g>
+      <use
+         height="100%"
+         width="100%"
+         transform="translate(-3.3975522e-6,33.261917)"
+         id="use4753-7"
+         xlink:href="#use1034-8"
+         y="0"
+         x="0" />
+      <use
+         height="100%"
+         width="100%"
+         transform="translate(-3.3975522e-6,66.523809)"
+         id="use4755-3"
+         xlink:href="#use1036-19"
+         y="0"
+         x="0" />
+    </g>
+  </g>
+</svg>
