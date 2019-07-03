@@ -458,6 +458,10 @@ drawWorld();
 
 ctx0.fillStyle = 'rgba(0, 0, 0, 0.1)';
 
+for (let sp in particles){
+	createParticles(2,particles[sp]);
+}
+
 function drawWorld(){
 	lastGlobalCoM = globalCoM;
 	parts_live = 0;
