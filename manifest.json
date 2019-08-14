@@ -2,7 +2,7 @@
 	"name": "Electroswarm",
 	"short_name": "Electroswarm",
 	"display": "standalone",
-	"scope": "../",
+	"scope": "../electroswarm",
 	"start_url": "index.html",
 	"theme_color": "#890b65",
 	"background_color": "#444444",
